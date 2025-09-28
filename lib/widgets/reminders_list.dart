@@ -1,3 +1,4 @@
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -60,7 +61,7 @@ class ReminderOptions {
         value: r,
         child: Text(
           r >= 60
-              ? '${r / 60} hr${r >= 120 ? 's' : ''} before'
+              ? '${r ~/ 60} hr${r >= 120 ? 's' : ''} before'
               : '$r min before',
         ),
       ),
@@ -77,9 +78,17 @@ class AddReminderButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
+        final renderBox = context.findRenderObject() as RenderBox;
+        final offset = renderBox.localToGlobal(Offset.zero);
+
         final selected = await showMenu<int>(
           context: context,
-          position: const RelativeRect.fromLTRB(100, 400, 100, 100),
+          position: RelativeRect.fromLTRB(
+            offset.dx,
+            offset.dy + renderBox.size.height,
+            offset.dx + renderBox.size.width,
+            0,
+          ),
           items: ReminderOptions.popupItems,
         );
 
@@ -90,7 +99,7 @@ class AddReminderButton extends StatelessWidget {
       child: Text(
         'Add Reminder',
         style: TextStyle(
-          fontSize: 15.sp,
+          fontSize:context.adaptSize(14.sp, tab: 12.sp),
           color: Theme.of(context).colorScheme.primary,
           fontWeight: FontWeight.w500,
         ),

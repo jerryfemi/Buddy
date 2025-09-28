@@ -1,3 +1,4 @@
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -124,7 +125,9 @@ class MyTableCalendar extends ConsumerWidget {
                     child: FittedBox(
                       child: Text(
                         '${day.day}',
-                        style: TextStyle(fontSize: 13.sp),
+                        style: TextStyle(
+                          fontSize: context.adaptSize(13.sp, tab: 12.sp),
+                        ),
                       ),
                     ),
                   ),
@@ -136,14 +139,18 @@ class MyTableCalendar extends ConsumerWidget {
                 return Center(
                   child: FittedBox(
                     child: Container(
-                      padding: EdgeInsetsGeometry.all(6.r),
+                      padding: EdgeInsetsGeometry.all(
+                        context.adaptPadding(6.r, tab: 8.r),
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primary,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         '${day.day}',
-                        style: TextStyle(fontSize: 13.sp),
+                        style: TextStyle(
+                          fontSize: context.adaptSize(13.sp, tab: 12.sp),
+                        ),
                       ),
                     ),
                   ),
@@ -156,7 +163,9 @@ class MyTableCalendar extends ConsumerWidget {
                   child: FittedBox(
                     child: Text(
                       '${day.day}',
-                      style: TextStyle(fontSize: 13.sp),
+                      style: TextStyle(
+                        fontSize: context.adaptSize(13.sp, tab: 12.sp),
+                      ),
                     ),
                   ),
                 );
@@ -167,7 +176,9 @@ class MyTableCalendar extends ConsumerWidget {
                 return Center(
                   child: FittedBox(
                     child: Container(
-                      padding: EdgeInsetsGeometry.all(6.r),
+                      padding: EdgeInsetsGeometry.all(
+                        context.adaptPadding(6.r, tab: 8.r),
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(
                           context,
@@ -176,7 +187,9 @@ class MyTableCalendar extends ConsumerWidget {
                       ),
                       child: Text(
                         '${day.day}',
-                        style: TextStyle(fontSize: 13.sp),
+                        style: TextStyle(
+                          fontSize: context.adaptSize(13.sp, tab: 12.sp),
+                        ),
                       ),
                     ),
                   ),
@@ -194,14 +207,17 @@ class MyTableCalendar extends ConsumerWidget {
                         DateFormat.yMMMM().format(date),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18.sp,
+                          fontSize: context.adaptSize(18.sp, tab: 14.sp),
                         ),
                       ),
                       SizedBox(width: 12.w),
                       IconButton(
                         icon: Icon(
+                          size: context.isTab ? 14.sp : null,
                           Icons.calendar_month,
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.8),
                         ),
                         onPressed: () => Scaffold.of(context).openDrawer(),
                       ),
@@ -214,7 +230,9 @@ class MyTableCalendar extends ConsumerWidget {
                   return Align(
                     alignment: Alignment.bottomCenter,
                     child: Container(
-                      margin: EdgeInsets.only(bottom: 2.h),
+                      margin: EdgeInsets.only(
+                        bottom: context.adaptPadding(2.h, tab: 0.h),
+                      ),
                       width: 8.w,
                       height: 8.h,
                       decoration: BoxDecoration(

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -7,20 +8,31 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 class TasksHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double percent;
   final double screenHeight;
+  final double maxExtentClampL;
+  final double maxExtentClampU;
+  final double minExtentClampL;
+  final double minExtentClampU;
 
-  TasksHeaderDelegate({required this.percent, required this.screenHeight});
+  TasksHeaderDelegate({
+    required this.percent,
+    required this.screenHeight,
+    required this.maxExtentClampL,
+    required this.maxExtentClampU,
+    required this.minExtentClampL,
+    required this.minExtentClampU,
+  });
 
   @override
   double get minExtent {
     final double min = 0.18 * screenHeight;
 
-    return min.clamp(80.h, 90.h).floorToDouble();
+    return min.clamp(minExtentClampL, minExtentClampU).floorToDouble();
   }
 
   @override
   double get maxExtent {
     final double max = 0.4 * screenHeight;
-    return max.clamp(260.h, 290.h).floorToDouble();
+    return max.clamp(maxExtentClampL, maxExtentClampU).floorToDouble();
   }
 
   @override
@@ -37,19 +49,28 @@ class TasksHeaderDelegate extends SliverPersistentHeaderDelegate {
     final curved = Curves.easeInOut.transform(progress);
 
     final double titleFontSize = lerpDouble(
-      30.sp,
-      22.sp,
+      context.adaptSize(30.sp, tab: 24.sp),
+      context.adaptSize(22.sp, tab: 16.sp),
       curved,
     )!.floorToDouble();
     final double indicatorRadius = lerpDouble(
-      88.r,
-      35.r,
+      context.adaptSize(88.w, tab: 70.w),
+
+      context.adaptSize(35.w, tab: 15.w),
       curved,
     )!.floorToDouble();
-    final double lineWidth = lerpDouble(15.w, 8.w, curved)!.floorToDouble();
+    final double lineWidth = lerpDouble(
+      context.adaptSize(15.w, tab: 11.w),
+      context.adaptSize(8.w, tab: 4.w),
+      curved,
+    )!.floorToDouble();
     final double spacing = lerpDouble(0, 0, curved)!.floorToDouble();
     final double topPadding = lerpDouble(40.h, 2.h, curved)!.floorToDouble();
-    final double centerFontSize = lerpDouble(28.sp, 8.sp, curved)!;
+    final double centerFontSize = lerpDouble(
+      context.adaptSize(28.sp, tab: 21.sp),
+      context.adaptSize(8.sp, tab: 4.sp),
+      curved,
+    )!;
     final double titleTranslateY = lerpDouble(0.0, -6.h, curved)!;
 
     final Axis direction = progress < 0.4 ? Axis.vertical : Axis.horizontal;
@@ -122,7 +143,9 @@ class TasksHeaderDelegate extends SliverPersistentHeaderDelegate {
                               style: TextStyle(
                                 fontSize: centerFontSize,
                                 fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.93),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.93),
                               ),
                             ),
                           ),

@@ -1,10 +1,15 @@
+import 'dart:ui';
+
+import 'package:buddy/firebase/sync_service/calendar_event_sync_service.dart';
+import 'package:buddy/providers/auth_provider.dart';
 import 'package:buddy/providers/previous_events_provider.dart';
 import 'package:buddy/services/events_notifications_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:uuid/uuid.dart';
 
+import '../firebase/sync_service/previous_events_sync_srevice.dart';
 import '../models/calendar_event_model.dart';
 
 // Access Hive box
@@ -12,26 +17,77 @@ final eventsBoxProvider = Provider<Box<CalendarEvent>>(
   (ref) => Hive.box<CalendarEvent>('eventsBox'),
 );
 
+// calendarEvents syncService provider
+final calendarEventsSyncServiceProvider = Provider<CalendarEventSyncService?>((
+  ref,
+) {
+  final user = ref.watch(authStateProvider).value;
+  final box = ref.watch(eventsBoxProvider);
+
+  if (user == null) return null;
+
+  return CalendarEventSyncService(userId: user.uid, eventBox: box);
+});
+
+// calendarEvents syncService provider
+final previousEventsSyncServiceProvider = Provider<PreviousEventSyncService?>((
+  ref,
+) {
+  final user = ref.watch(authStateProvider).value;
+  final box = ref.watch(previousEventsBoxProvider);
+
+  if (user == null) return null;
+
+  return PreviousEventSyncService(userId: user.uid, previousEventBox: box);
+});
+
 // All events from box (raw + rollover applied)
 final eventsProvider =
     StateNotifierProvider<CalendarEventNotifier, List<CalendarEvent>>((ref) {
       final box = ref.watch(eventsBoxProvider);
-      return CalendarEventNotifier(box, ref);
+      final eventsService = ref.watch(calendarEventsSyncServiceProvider);
+      final preEventsService = ref.watch(previousEventsSyncServiceProvider);
+      return CalendarEventNotifier(box, ref, eventsService, preEventsService);
     });
 
 // Notifier
 class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
   final Box<CalendarEvent> _box;
+  final CalendarEventSyncService? _syncService;
+  final PreviousEventSyncService? _eventSyncService;
   final Ref _ref;
+  late final VoidCallback listener;
 
-  CalendarEventNotifier(this._box, this._ref) : super(_box.values.toList()) {
+  CalendarEventNotifier(
+    this._box,
+    this._ref,
+    this._syncService,
+    this._eventSyncService,
+  ) : super(_box.values.toList()) {
     _refreshState();
+
+    // define the listener
+    listener = () {
+      if (mounted) {
+        _refreshState();
+      }
+    };
+
+    // add listener
+    _box.listenable().addListener(listener);
+  }
+
+  @override
+  void dispose() {
+    // remove listener
+    _box.listenable().removeListener(listener);
+    super.dispose();
   }
 
   final _eventsNotifs = EventsNotificationsRepository();
 
   //  Add new event
-  Future<void> addEvent({
+  void addEvent({
     required String title,
     required DateTime startDateTime,
     required DateTime endDateTime,
@@ -39,7 +95,7 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
     bool isAllDay = false,
     List<int> reminders = const [],
     String repeatRule = 'never',
-  }) async {
+  }) {
     final newEvent = CalendarEvent(
       id: const Uuid().v4(),
       title: title,
@@ -51,27 +107,37 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
       repeatRule: repeatRule,
     );
 
-    await _box.put(newEvent.id, newEvent);
+    _box.put(newEvent.id, newEvent);
 
     // schedule notifications
-    await _eventsNotifs.schedulePreEventReminders(newEvent);
-    await _eventsNotifs.scheduleEventReminder(newEvent);
+    _eventsNotifs.schedulePreEventReminders(newEvent);
+    _eventsNotifs.scheduleEventReminder(newEvent);
 
-    _refreshState();
     // apply rollover immediately
+    _refreshState();
+    // sync events to fireStore
+    if (_syncService != null) {
+      _syncService.syncToFirestore(newEvent);
+    }
   }
 
   //  Delete event → moves to "previous events"
-  Future<void> deleteEvent(String id) async {
+  void deleteEvent(String id) {
     final event = _box.get(id);
     if (event == null) return;
 
-    await _ref.read(previousEventsProvider.notifier).addPreviousEvents(event);
-    await _box.delete(id);
+    _ref.read(previousEventsProvider.notifier).addPreviousEvents(event);
+    _box.delete(id);
 
-    // delete notifications
-    await _eventsNotifs.cancelEventReminder(event.id);
     _refreshState();
+    // delete notifications
+    _eventsNotifs.cancelEventReminder(event);
+
+    // delete event from fireStore
+    if (_syncService != null && _eventSyncService != null) {
+      final previousService = _eventSyncService;
+      _syncService.moveToPreviousEvents(event, previousService);
+    }
   }
 
   // apply rollOver across all events
@@ -84,14 +150,20 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
     state = updated;
   }
 
-  Future<void> cleanupExpiredEvents() async {
+  void cleanupExpiredEvents() {
     final now = DateTime.now();
     final expired = _box.values.where(
       (event) => event.endDateTime.isBefore(now),
     );
     for (final event in expired) {
-      await _ref.read(previousEventsProvider.notifier).addPreviousEvents(event);
-      await _box.delete(event.id);
+      _ref.read(previousEventsProvider.notifier).addPreviousEvents(event);
+      _box.delete(event.id);
+
+      // remove from firestore collection
+      if (_syncService != null && _eventSyncService != null) {
+        final previousService = _eventSyncService;
+        _syncService.moveToPreviousEvents(event, previousService);
+      }
     }
   }
 
@@ -120,6 +192,11 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
 
     // Move old occurrence to previous
     _ref.read(previousEventsProvider.notifier).addPreviousEvents(event);
+
+    if (_syncService != null && _eventSyncService != null) {
+      final previousService = _eventSyncService;
+      _syncService.moveToPreviousEvents(event, previousService);
+    }
 
     final updated = event.copyWith(
       startDateTime: nextStart,

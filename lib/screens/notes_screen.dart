@@ -2,6 +2,7 @@ import 'package:buddy/providers/notes_provider.dart';
 import 'package:buddy/screens/edit_note_screen.dart';
 import 'package:buddy/screens/recently_deleted_notes_screen.dart';
 import 'package:buddy/transition_class/dart/app_navigator.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:buddy/widgets/my_sliver_app_bar.dart';
 import 'package:buddy/widgets/note_card.dart';
 import 'package:flutter/material.dart';
@@ -38,8 +39,10 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
       return note.content.toLowerCase().contains(searchLower) ||
           note.title.toLowerCase().contains(searchLower);
     }).toList();
+    filteredNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       floatingActionButton: FloatingActionButton(
         heroTag: 'notes',
         shape: CircleBorder(),
@@ -85,35 +88,32 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
                 ],
               ),
             ],
-            title: Text(
-              'Notes',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22.sp),
-            ),
+            title: 'Notes',
           ),
           notes.isEmpty
               ? SliverToBoxAdapter(
-            child: Center(
-              child: Column(
-                children: [
-                  SizedBox(height: 250.h),
-                  Text(
-                    'Create your personal notes.',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.tertiary,
-                      fontSize: 13.sp,
+                  child: Center(
+                    child: Column(
+                      children: [
+                        SizedBox(height: 250.h),
+                        Text(
+                          'Create your personal notes.',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.tertiary,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                        Text(
+                          'Tap the plus button to get started.',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.tertiary,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    'Tap the plus button to get started.',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.tertiary,
-                      fontSize: 13.sp,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
+                )
               :
                 // Search bar
                 SliverPersistentHeader(
@@ -130,13 +130,15 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
             delegate: SliverChildBuilderDelegate((context, index) {
               final note = filteredNotes[index];
               return Padding(
-                padding: EdgeInsets.only(left: 15.w, right: 15.w, bottom: 8.h),
+                padding: EdgeInsets.only(
+                  left: 12.w,
+                  right: 12.w,
+                  bottom: 4.h,
+                ),
                 child: NoteTile(note: note),
               );
             }, childCount: filteredNotes.length),
           ),
-          //filler to always enable scrolling
-
         ],
       ),
     );

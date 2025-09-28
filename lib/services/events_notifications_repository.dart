@@ -40,7 +40,14 @@ class EventsNotificationsRepository {
   }
 
   // Cancel a reminder when task is deleted or completed
-  Future<void> cancelEventReminder(String id) async {
-    await NotificationService.cancelEvent(id);
+  Future<void> cancelEventReminder(CalendarEvent event) async {
+    // cancel main event
+    await NotificationService.cancelEvent(event.id);
+
+    // cancel pre event reminders too
+    for (final minutes in event.reminders) {
+      final preEventUid = '${event.id}-$minutes';
+      await NotificationService.cancelPreEvent(preEventUid);
+    }
   }
 }

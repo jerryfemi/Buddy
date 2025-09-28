@@ -1,4 +1,5 @@
 import 'package:buddy/screens/year_view_screen.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:buddy/widgets/custom_drawer.dart';
 import 'package:buddy/widgets/event_sliver.dart';
 import 'package:flutter/material.dart';
@@ -22,16 +23,15 @@ class _RemindersScreenState extends State<RemindersScreen> {
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: 0.6,
+        initialChildSize: context.adaptSize(0.6, tab: 0.5),
         minChildSize: 0.37,
-        maxChildSize: 0.9,
+        maxChildSize: 0.8,
         builder: (context, scrollController) {
           return AddEventSheet(scrollController: scrollController);
         },
       ),
     );
   }
-
 
   DateTime? _selectedDay;
   DateTime _focusedDay = DateTime.now();
@@ -82,6 +82,25 @@ class _RemindersScreenState extends State<RemindersScreen> {
             });
           }
         },
+        header: Text(
+          'Calendar',
+          style: TextStyle(
+            fontSize: context.adaptSize(20.sp, tab: 16.sp),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        title1: 'Go To',
+        title2: 'Year',
+        leading1: Icon(
+          Icons.calendar_view_month_outlined,
+          size: context.adaptSize(26.sp,tab: 20.sp),
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        leading2: Icon(
+          Icons.calendar_month,
+          size: context.adaptSize(26.sp,tab: 20.sp),
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -90,7 +109,9 @@ class _RemindersScreenState extends State<RemindersScreen> {
             final double minCalendarHeight = 155.h;
 
             return CustomScrollView(
-              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               controller: _scrollController,
               slivers: [
                 // Shrinkable Calendar Header

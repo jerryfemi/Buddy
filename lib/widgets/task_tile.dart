@@ -1,5 +1,6 @@
 import 'package:buddy/models/task_model.dart';
 import 'package:buddy/providers/tasks_provider.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,7 +13,7 @@ class TaskTile extends ConsumerWidget {
 
   const TaskTile({super.key, required this.task, required this.onChanged});
 
-  String formatEventDateTime(DateTime startTime) {
+  String formatTasksDateTime(DateTime startTime) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(Duration(days: 1));
@@ -66,7 +67,7 @@ class TaskTile extends ConsumerWidget {
               ? Icon(
                   Icons.notifications_active_rounded,
                   color: Theme.of(context).colorScheme.primary,
-                  size: 25.sp,
+                  size: context.adaptSize(25.sp,tab: 18.sp),
                 )
               : null,
           // checkbox
@@ -81,7 +82,7 @@ class TaskTile extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
             style: TextStyle(
-              fontSize: 15.sp,
+              fontSize: context.adaptSize(15.sp, tab: 12.sp),
               fontWeight: FontWeight.w500,
               decoration: task.isCompleted
                   ? TextDecoration.lineThrough
@@ -92,9 +93,9 @@ class TaskTile extends ConsumerWidget {
           // reminder date
           subtitle: task.hasReminder && task.reminderTime != null
               ? Text(
-                  formatEventDateTime(task.reminderTime!),
+                  formatTasksDateTime(task.reminderTime!),
                   style: TextStyle(
-                    fontSize: 13.sp,
+                    fontSize: context.adaptSize(13.sp,tab: 10.sp),
                     color: Theme.of(context).colorScheme.tertiary,
                   ),
                 )

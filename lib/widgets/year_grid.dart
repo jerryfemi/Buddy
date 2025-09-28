@@ -1,3 +1,4 @@
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:buddy/widgets/mini_month.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

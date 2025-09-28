@@ -1,40 +1,74 @@
+import 'package:buddy/firebase/sync_service/tasks_sync_service.dart';
 import 'package:buddy/models/calendar_event_model.dart';
 import 'package:buddy/models/task_model.dart';
+import 'package:buddy/providers/auth_provider.dart';
 import 'package:buddy/providers/previous_events_provider.dart';
 import 'package:buddy/services/task_notifications_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:uuid/uuid.dart';
 
 // getting access to the tasks Hive box
 final tasksBoxProvider = Provider<Box<Task>>(
   (ref) => Hive.box<Task>('tasksBox'),
 );
+
+// tasks sync service provider
+final tasksSyncService = Provider<TaskSyncService?>((ref) {
+  final user = ref.watch(authStateProvider).value;
+  final box = ref.watch(tasksBoxProvider);
+
+  if (user == null) return null;
+  return TaskSyncService(userId: user.uid, taskBox: box);
+});
+
 // pass access to the taskNotifier
 final tasksProvider = StateNotifierProvider<TasksNotifier, List<Task>>((ref) {
   // get the tasks hive box
   final box = ref.watch(tasksBoxProvider);
-  // pass the task hive box to the tasks notifier
-  return TasksNotifier(box, ref);
+  final tasksService = ref.watch(tasksSyncService);
+  return TasksNotifier(box, ref, tasksService);
 });
 
 class TasksNotifier extends StateNotifier<List<Task>> {
   final Box<Task> _box;
+  final TaskSyncService? _syncService;
   final Ref _ref;
+  late final VoidCallback listener;
 
-  TasksNotifier(this._box, this._ref) : super(_box.values.toList());
+  TasksNotifier(this._box, this._ref, this._syncService)
+    : super(_box.values.toList()) {
+
+    // listen for hive changes
+    listener = () {
+      if (mounted) {
+        state = _box.values.toList();
+      }
+    };
+
+    // add listener
+    _box.listenable().addListener(listener);
+  }
+
+  @override
+  void dispose() {
+    // remove listener
+    _box.listenable().removeListener(listener);
+    super.dispose();
+  }
 
   // repository for task notifications
   final taskNotificationRepo = TaskNotificationRepository();
 
   // add tasks
-  Future<void> createTask({
+  void createTask({
     required String title,
     String description = '',
     Priority priority = Priority.low,
     DateTime? reminderTime,
-  }) async {
+  }) {
     final newTask = Task(
       id: Uuid().v4(),
       title: title,
@@ -44,34 +78,57 @@ class TasksNotifier extends StateNotifier<List<Task>> {
       isCompleted: false,
       completedAt: null,
     );
-    // if the only task in the box is the default task, delete it.
-    if (_box.length == 1 && _box.getAt(0)?.title == 'Add Task') {
-      _box.deleteAt(0);
-    }
-    await _box.put(newTask.id, newTask);
 
+    _box.put(newTask.id, newTask);
     // schedule notifications if reminder is set
-    await taskNotificationRepo.scheduleTaskReminder(newTask);
+    if (reminderTime != null) {
+      taskNotificationRepo.scheduleTaskReminder(newTask);
+    }
     state = _box.values.toList();
+
+    // sync to firestore
+    if (_syncService != null) {
+      _syncService.syncToFirestore(newTask);
+    }
   }
 
   // toggle task
-  Future<void> toggleTask(String id) async {
+  void toggleTask(String id) {
     final task = _box.get(id);
+
     if (task != null) {
+      // Toggle the task's completion status
       task.isCompleted = !task.isCompleted;
-      await task.save();
+
       if (task.isCompleted) {
+        //  Task just got completed — mark timestamp
         task.completedAt = DateTime.now();
+
+        //  Cancel reminder notifications (if any)
+        if (task.hasReminder) {
+          taskNotificationRepo.cancelTaskReminder(task.id);
+        }
       } else {
         task.completedAt = null;
+
+        // Re-schedule reminder if still valid and in the future
+        if (task.hasReminder &&
+            task.reminderTime != null &&
+            task.reminderTime!.isAfter(DateTime.now())) {
+          taskNotificationRepo.scheduleTaskReminder(task);
+        }
       }
+
+      // Persist changes to Hive
+      task.save();
+
+      // Update state so UI refreshes
       state = _box.values.toList();
     }
   }
 
   // auto deleteCompletedTasks
-  Future<void> cleanupCompletedTasks() async {
+  void cleanupCompletedTasks() {
     final now = DateTime.now();
     final toRemove = _box.values.where(
       (task) =>
@@ -87,16 +144,20 @@ class TasksNotifier extends StateNotifier<List<Task>> {
         endDateTime: task.completedAt!,
         title: task.title,
       );
-      await _ref
+      _ref
           .read(previousEventsProvider.notifier)
           .addPreviousEvents(preEventTask);
-      await _box.delete(task.id);
+      _box.delete(task.id);
       state = _box.values.toList();
+
+      if (_syncService != null) {
+        _syncService.deleteFromFirestore(task.id);
+      }
     }
   }
 
   // delete task
-  Future<void> deleteTask(String id) async {
+  void deleteTask(String id) {
     final task = _box.get(id);
     if (task != null) {
       final eventTime = task.isCompleted && task.completedAt != null
@@ -108,13 +169,18 @@ class TasksNotifier extends StateNotifier<List<Task>> {
         endDateTime: eventTime,
         title: task.title,
       );
-      await _ref
+      _ref
           .read(previousEventsProvider.notifier)
           .addPreviousEvents(preEventTask);
+      _box.delete(id);
       // cancel notifications if reminders exists
-      await taskNotificationRepo.cancelTaskReminder(id);
-      await _box.delete(id);
       state = _box.values.toList();
+      taskNotificationRepo.cancelTaskReminder(id);
+
+      // delete from firestore
+      if (_syncService != null) {
+        _syncService.deleteFromFirestore(task.id);
+      }
     }
   }
 

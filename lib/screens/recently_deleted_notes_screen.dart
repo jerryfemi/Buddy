@@ -1,4 +1,5 @@
 import 'package:buddy/providers/deleted_notes_provider.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -38,13 +39,15 @@ class _RecentlyDeletedNotesScreenState
             actions: [
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: Icon(Icons.exit_to_app,color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),),
+                icon: Icon(
+                  Icons.exit_to_app,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.7),
+                ),
               ),
             ],
-            title: Text(
-              'Recently deleted',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
-            ),
+            title:'Recently Deleted'
           ),
           deletedNote.isEmpty
               ? SliverToBoxAdapter(
@@ -56,7 +59,7 @@ class _RecentlyDeletedNotesScreenState
                           'No recently deleted notes',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.tertiary,
-                            fontSize: 16.sp,
+                            fontSize: 13.sp,
                           ),
                         ),
                       ],
@@ -79,7 +82,11 @@ class _RecentlyDeletedNotesScreenState
             delegate: SliverChildBuilderDelegate((context, index) {
               final deleted = filteredNotes[index];
               return Padding(
-                padding: EdgeInsets.only(left: 15.w, right: 15.w, bottom: 8.h),
+                padding: EdgeInsets.only(
+                  left:  context.adaptSize(15.w,tab: 12.w),
+                  right:  context.adaptSize(15.w,tab: 12.w),
+                  bottom: context.adaptPadding(8.h, tab: 5.h),
+                ),
                 child: DeletedNotesTile(note: deleted),
               );
             }, childCount: filteredNotes.length),

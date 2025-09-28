@@ -1,3 +1,4 @@
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -27,7 +28,7 @@ class MiniMonth extends StatelessWidget {
     return Column(
       children: [
         // weekday headers
-        _weekDayHeaders(Theme.of(context).colorScheme.tertiary),
+        _weekDayHeaders(Theme.of(context).colorScheme.tertiary,context),
         Expanded(
           child: GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
@@ -75,7 +76,7 @@ class MiniMonth extends StatelessWidget {
   }
 }
 
-Widget _weekDayHeaders(Color color) {
+Widget _weekDayHeaders(Color color,BuildContext context) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceAround,
     children: _weekdays

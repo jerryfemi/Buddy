@@ -1,5 +1,6 @@
 import 'package:buddy/providers/notes_provider.dart';
 import 'package:buddy/transition_class/dart/app_navigator.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -46,7 +47,7 @@ class NoteTile extends ConsumerWidget {
           );
         },
         child: Container(
-          padding: EdgeInsets.all(10.r),
+          padding: EdgeInsets.all(context.adaptPadding(10.r, tab: 8.r)),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.secondary,
             borderRadius: BorderRadius.circular(12.r),
@@ -54,9 +55,10 @@ class NoteTile extends ConsumerWidget {
           child: ListTile(
             title: Text(
               maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               note.title,
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: context.adaptSize(16.sp, tab: 12.sp),
                 fontWeight: FontWeight.w500,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -68,7 +70,7 @@ class NoteTile extends ConsumerWidget {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.tertiary,
                     fontWeight: FontWeight.w500,
-                    fontSize: 13.sp,
+                    fontSize: context.adaptSize(13.sp, tab: 10.sp),
                   ),
                 ),
                 SizedBox(width: 8.w),
@@ -78,6 +80,8 @@ class NoteTile extends ConsumerWidget {
                     note.subtitle,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.tertiary,
+                      fontSize: context.adaptSize(13.sp, tab: 10.sp),
+
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

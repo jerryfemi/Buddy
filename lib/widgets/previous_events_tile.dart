@@ -1,5 +1,6 @@
 import 'package:buddy/models/previous_events_model.dart';
 import 'package:buddy/providers/previous_events_provider.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -55,7 +56,10 @@ class _EventsListTileState extends ConsumerState<PreviousEventsTile> {
           child: ListTile(
             title: Text(
               widget.event.title,
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16.sp),
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: context.adaptSize(16.sp, tab: 12.sp),
+              ),
             ),
 
             subtitle: Column(
@@ -68,7 +72,7 @@ class _EventsListTileState extends ConsumerState<PreviousEventsTile> {
                       ? Text(
                           widget.event.description!,
                           style: TextStyle(
-                            fontSize: 13.sp,
+                            fontSize: context.adaptSize(13.sp, tab: 10.sp),
                             color: Theme.of(context).colorScheme.tertiary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -82,7 +86,7 @@ class _EventsListTileState extends ConsumerState<PreviousEventsTile> {
                 Text(
                   formatEventDateTime(widget.event.startDateTime),
                   style: TextStyle(
-                    fontSize: 13.sp,
+                    fontSize: context.adaptSize(13.sp, tab: 10.sp),
                     color: Theme.of(context).colorScheme.tertiary,
                   ),
                 ),

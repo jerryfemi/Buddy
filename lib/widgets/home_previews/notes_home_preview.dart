@@ -1,6 +1,7 @@
 import 'package:buddy/models/note_model.dart';
 import 'package:buddy/providers/notes_provider.dart';
 import 'package:buddy/screens/navigation_screen.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:buddy/widgets/note_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +28,10 @@ class NotesHomePreview extends ConsumerWidget {
             // HEADER
             Text(
               'Notes',
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: context.adaptSize(18.sp, tab: 14.sp),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             ..._previewNote(ref, notes, context),
           ],
@@ -46,8 +50,11 @@ class NotesHomePreview extends ConsumerWidget {
     if (preview.isEmpty) {
       return [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.r),
-          child: Text('Notes is empty'),
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          child: Text(
+            'Notes is empty',
+            style: TextStyle(fontSize: context.isTab ? 10.sp : null),
+          ),
         ),
       ];
     }
@@ -58,14 +65,14 @@ class NotesHomePreview extends ConsumerWidget {
           notes.title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 14.sp),
+          style: TextStyle(fontSize: context.adaptSize(14.sp, tab: 12.sp)),
         ),
         subtitle: Row(
           children: [
             Text(
-              '${formatDateTime(notes.createdAt)} :',
+              '${formatDateTime(notes.updatedAt)} :',
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: context.adaptSize(12.sp, tab: 10.sp),
                 color: Theme.of(context).colorScheme.tertiary,
               ),
             ),
@@ -76,7 +83,7 @@ class NotesHomePreview extends ConsumerWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12.sp,
+                  fontSize: context.adaptSize(12.sp, tab: 10.sp),
                   color: Theme.of(context).colorScheme.tertiary,
                 ),
               ),

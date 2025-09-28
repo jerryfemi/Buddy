@@ -1,5 +1,6 @@
 import 'package:buddy/models/deleted_notes_model.dart';
 import 'package:buddy/providers/deleted_notes_provider.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -79,7 +80,7 @@ class DeletedNotesTile extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12.r),
         onTap: onTapTile,
         child: Container(
-          padding: EdgeInsets.all(10.r),
+          padding: EdgeInsets.all( context.adaptPadding(10.r,tab: 8.r),),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.secondary,
             borderRadius: BorderRadius.circular(12.r),
@@ -89,7 +90,7 @@ class DeletedNotesTile extends ConsumerWidget {
               maxLines: 1,
               note.title,
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize:  context.adaptSize(16.sp,tab: 12.sp),
                 fontWeight: FontWeight.w500,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -97,8 +98,7 @@ class DeletedNotesTile extends ConsumerWidget {
             subtitle: Text(
               maxLines: 1,
               note.subtitle,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.tertiary,
+              style: TextStyle(fontSize:  context.adaptSize(13.sp,tab: 10.sp),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -106,7 +106,7 @@ class DeletedNotesTile extends ConsumerWidget {
               '$daysLeft days left',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.tertiary,
-                fontSize: 12.sp,fontWeight: FontWeight.w500
+                fontSize:  context.adaptSize(13.sp,tab: 10.sp),fontWeight: FontWeight.w500
               ),
             ),
           ),

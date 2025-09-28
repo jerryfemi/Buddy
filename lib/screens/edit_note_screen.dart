@@ -18,13 +18,17 @@ class EditNotesScreen extends ConsumerStatefulWidget {
   ConsumerState<EditNotesScreen> createState() => _EditNotesScreenState();
 }
 
-class _EditNotesScreenState extends ConsumerState<EditNotesScreen> {
+class _EditNotesScreenState extends ConsumerState<EditNotesScreen>
+    with WidgetsBindingObserver {
   QuillController _controller = QuillController.basic();
   final _focusNode = FocusNode();
-  Timer? _debounce;
+  late String _initialContentJson;
+  late String _initialPlainText;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+
     super.initState();
     if (widget.existingNote != null) {
       // load existing note from JSON
@@ -33,29 +37,16 @@ class _EditNotesScreenState extends ConsumerState<EditNotesScreen> {
         document: Document.fromJson(decoded as List),
         selection: const TextSelection.collapsed(offset: 0),
       );
+      // save snapshot
+      _initialContentJson = widget.existingNote!.contentJson;
+      _initialPlainText = widget.existingNote!.content;
     } else {
       // new empty note
       _controller = QuillController.basic();
 
-      // listen for document changes
-      _controller.document.changes.listen((event) {
-        _debounce?.cancel();
-
-        _debounce = Timer(const Duration(seconds: 1), () async {
-          final plainText = _controller.document.toPlainText().trim();
-          final contentJson = jsonEncode(
-            _controller.document.toDelta().toJson(),
-          );
-
-          if (plainText.isNotEmpty && widget.existingNote != null) {
-            widget.existingNote!.content = plainText;
-            widget.existingNote!.contentJson = contentJson;
-            widget.existingNote!.updatedAt = DateTime.now();
-
-            await widget.existingNote!.save();
-          }
-        });
-      });
+      // new note starts empty
+      _initialPlainText = "";
+      _initialContentJson = "";
     }
     _focusNode.addListener(() {
       setState(() {});
@@ -73,7 +64,10 @@ class _EditNotesScreenState extends ConsumerState<EditNotesScreen> {
     if (plainText.isEmpty) {
       return;
     }
-
+    // ignore if no changes were made
+    if (plainText == _initialPlainText && contentJson == _initialContentJson) {
+      return;
+    }
     if (widget.existingNote != null) {
       // update existing note
       ref
@@ -88,23 +82,22 @@ class _EditNotesScreenState extends ConsumerState<EditNotesScreen> {
           .read(notesProvider.notifier)
           .addNote(content: plainText, contentJson: contentJson);
     }
+
+    // refresh snapshot after successful save
+    _initialPlainText = plainText;
+    _initialContentJson = contentJson;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _saveNote();
+    }
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
-    final plainText = _controller.document.toPlainText().trim();
-    final contentJson = jsonEncode(_controller.document.toDelta().toJson());
-
-    if (plainText.isNotEmpty && widget.existingNote != null) {
-      widget.existingNote!.content = plainText;
-      widget.existingNote!.contentJson = contentJson;
-      widget.existingNote!.updatedAt = DateTime.now();
-    } else {
-      ref
-          .read(notesProvider.notifier)
-          .addNote(content: plainText, contentJson: contentJson);
-    }
+    WidgetsBinding.instance.removeObserver(this);
 
     _controller.dispose();
     _focusNode.dispose();

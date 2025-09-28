@@ -1,6 +1,7 @@
 import 'package:buddy/models/task_model.dart';
 import 'package:buddy/providers/tasks_provider.dart';
 import 'package:buddy/screens/navigation_screen.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,7 +19,10 @@ class TasksHomePreview extends ConsumerWidget {
       enableFeedback: true,
       onTap: () => NavigationScreen.switchToTab(context, 2),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 9.h, horizontal: 10.w),
+        padding: EdgeInsets.symmetric(
+          vertical: context.adaptSize(9.h, ),
+          horizontal: context.adaptSize(10.w,),
+        ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.secondary,
           borderRadius: BorderRadius.circular(15.r),
@@ -34,7 +38,7 @@ class TasksHomePreview extends ConsumerWidget {
                     'Tasks',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18.sp,
+                      fontSize: context.adaptSize(18.sp,tab: 14.sp),
                     ),
                   ),
                   // list of tasks
@@ -42,18 +46,15 @@ class TasksHomePreview extends ConsumerWidget {
                 ],
               ),
             ),
-            SizedBox(
-              height: 100.h,
-              width: 100.h,
-              child: FittedBox(
+             FittedBox(
                 fit: BoxFit.scaleDown,
                 child: CircularPercentIndicator(
-                  radius: 38.r,
+                  radius:  context.adaptSize(38.r,tab: 34.r) ,
                   animationDuration: 850,
                   animation: true,
                   animateFromLastPercent: true,
                   circularStrokeCap: CircularStrokeCap.round,
-                  lineWidth: 5.w,
+                  lineWidth:  5.w,
                   curve: Curves.easeInOut,
                   percent: percent,
                   backgroundColor: Theme.of(
@@ -65,7 +66,7 @@ class TasksHomePreview extends ConsumerWidget {
                     child: Text(
                       '${(percent * 100).round()}%',
                       style: TextStyle(
-                        fontSize: 14.sp,
+                        fontSize: context.adaptSize(14.sp,tab: 12.sp),
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w500,
                       ),
@@ -73,7 +74,6 @@ class TasksHomePreview extends ConsumerWidget {
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -94,33 +94,62 @@ List<Widget> _previewTasks(
     return [
       Padding(
         padding: EdgeInsets.symmetric(vertical: 10.h),
-        child: Text('No Tasks yet.'),
+        child: Text(
+          'No Tasks yet.',
+          style: TextStyle(fontSize: context.isTab? 10.sp:null,)
+        ),
       ),
     ];
   }
 
   return preview.map((task) {
-    return Row(
-      children: [
-        // quick checkBox
-        Checkbox(
-          shape: CircleBorder(),
-          value: task.isCompleted,
-          onChanged: (value) =>
-              ref.read(tasksProvider.notifier).toggleTask(task.id),
-        ),
-        Expanded(
-          child: Text(
-            task.title,
-            style: TextStyle(
-              decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-              color: task.isCompleted
-                  ? Theme.of(context).colorScheme.tertiary
-                  : null,
+    return context.isMobile
+        ? Row(
+            children: [
+              // quick checkBox
+              Checkbox(
+                shape: CircleBorder(),
+                value: task.isCompleted,
+                onChanged: (value) =>
+                    ref.read(tasksProvider.notifier).toggleTask(task.id),
+              ),
+              Expanded(
+                child: Text(
+                  task.title,maxLines: 1,overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: context.adaptSize(12.sp,),
+
+                    decoration: task.isCompleted
+                        ? TextDecoration.lineThrough
+                        : null,
+                    color: task.isCompleted
+                        ? Theme.of(context).colorScheme.tertiary
+                        : null,
+                  ),
+                ),
+              ),
+            ],
+          )
+        : ListTile(
+            leading: Checkbox(
+              shape: CircleBorder(),
+              value: task.isCompleted,
+              onChanged: (value) =>
+                  ref.read(tasksProvider.notifier).toggleTask(task.id),
             ),
-          ),
-        ),
-      ],
-    );
+            title: Text(
+              task.title,maxLines: 1,overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: context.adaptSize(12.sp),
+
+                decoration: task.isCompleted
+                    ? TextDecoration.lineThrough
+                    : null,
+                color: task.isCompleted
+                    ? Theme.of(context).colorScheme.tertiary
+                    : null,
+              ),
+            ),
+          );
   }).toList();
 }

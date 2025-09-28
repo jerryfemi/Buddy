@@ -1,6 +1,7 @@
 import 'package:buddy/models/calendar_event_model.dart';
 import 'package:buddy/providers/calendar_event_provider.dart';
 import 'package:buddy/providers/previous_events_provider.dart';
+import 'package:buddy/utils/responsive_utils.dart';
 import 'package:buddy/widgets/add_events_sheet.dart';
 import 'package:buddy/widgets/previous_events_tile.dart';
 import 'package:flutter/material.dart';
@@ -56,10 +57,8 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
-                        onPressed: () => ref
-                            .read(previousEventsProvider.notifier)
-                            .clearPreviousEvents(),
-                        child: Text('clear all'),
+                        onPressed: () => showClearAllDialog(context, ref),
+                        child: Text('clear all',style: TextStyle(fontSize: 10.sp),),
                       ),
                     ],
                   ),
@@ -108,14 +107,14 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                             : 'No upcoming events')
                       : 'No previous events',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.tertiary,
+                    color: Theme.of(context).colorScheme.tertiary,fontSize:context.isTab? 10.sp:null
                   ),
                 ),
                 // Only allow adding events in "upcoming" mode
                 if (showUpcoming)
                   TextButton(
                     onPressed: openAddEventsDialog,
-                    child: const Text('Add Events'),
+                    child:  Text('Add Events',style: TextStyle(fontSize:context.isTab? 10.sp: null),),
                   ),
               ],
             ),
@@ -146,8 +145,8 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                 }),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 8.h,
+                    horizontal:  context.adaptSize(10.w,tab: 8.w),
+                    vertical:  context.adaptSize(8.h,tab: 6.h),
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(6.r),
@@ -163,7 +162,7 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                     child: Text(
                       'Events',
                       style: TextStyle(
-                        fontSize: 14.sp,
+                        fontSize: context.adaptSize(14.sp,tab: 12.sp),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -180,8 +179,8 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                 }),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 8.h,
+                    horizontal:  context.adaptSize(10.w,tab: 8.w),
+                    vertical:  context.adaptSize(8.h,tab: 6.h),
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(6.r),
@@ -197,7 +196,7 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                     child: Text(
                       'Previous events',
                       style: TextStyle(
-                        fontSize: 14.sp,
+                        fontSize: context.adaptSize(14.sp,tab: 12.sp),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -220,9 +219,9 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: 0.6,
+        initialChildSize: context.adaptSize(0.6, tab: 0.5),
         minChildSize: 0.37,
-        maxChildSize: 0.9,
+        maxChildSize: 0.8,
         builder: (context, scrollController) {
           return AddEventSheet(scrollController: scrollController);
         },
@@ -249,4 +248,35 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
+}
+
+Future<void> showClearAllDialog(BuildContext context, WidgetRef ref) async {
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Clear all'),
+      content: const Text(
+        'Are you sure you want to clear all Previous Events?',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(), // Cancel
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () async {
+            Navigator.of(context).pop(); // Close dialog
+            await ref
+                .read(previousEventsProvider.notifier)
+                .clearPreviousEvents();
+          },
+          child: const Text('Clear all'),
+        ),
+      ],
+    ),
+  );
 }
