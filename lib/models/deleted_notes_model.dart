@@ -15,7 +15,7 @@ class DeletedNote {
   final String contentJson; // Full Quill JSON string
 
   @HiveField(3)
-  final DateTime deletedAt; // Timestamp of deletion
+  final DateTime? deletedAt; // Timestamp of deletion
   @HiveField(4)
   final DateTime createdAt;
   @HiveField(5)

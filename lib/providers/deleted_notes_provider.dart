@@ -144,7 +144,7 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
 
     final toRemove = box.values
         .where((note) {
-          return now.difference(note.deletedAt).inDays >= 30;
+          return now.difference(note.deletedAt!).inDays >= 30;
         })
         .map((n) => n.id)
         .toList();

@@ -13,7 +13,7 @@ class DeletedNotesTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final daysLeft = 30 - DateTime.now().difference(note.deletedAt).inDays;
+    final daysLeft = 30 - DateTime.now().difference(note.deletedAt!).inDays;
     void onTapTile() {
       showDialog(
         context: context,

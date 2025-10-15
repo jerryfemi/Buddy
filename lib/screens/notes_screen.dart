@@ -2,7 +2,6 @@ import 'package:buddy/providers/notes_provider.dart';
 import 'package:buddy/screens/edit_note_screen.dart';
 import 'package:buddy/screens/recently_deleted_notes_screen.dart';
 import 'package:buddy/transition_class/dart/app_navigator.dart';
-import 'package:buddy/utils/responsive_utils.dart';
 import 'package:buddy/widgets/my_sliver_app_bar.dart';
 import 'package:buddy/widgets/note_card.dart';
 import 'package:flutter/material.dart';

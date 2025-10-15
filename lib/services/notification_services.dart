@@ -30,7 +30,6 @@ class NotificationService {
 
     await _notifications.initialize(
       settings,
-      onDidReceiveNotificationResponse: (response) {},
     );
 
     // Android: register channels with max importance
@@ -40,14 +39,13 @@ class NotificationService {
         >();
 
     if (androidPlugin != null) {
-      // Main channel with MAX importance for better reliability
+      // Tasks notifications channel
       await androidPlugin.createNotificationChannel(
         const AndroidNotificationChannel(
-          'reminders_channel',
-          'Reminders',
-          description: 'Task and event reminders',
+          'tasks_channel',
+          'Tasks',
+          description: 'Reminders for your Tasks',
           importance: Importance.max,
-          // Changed to max
           showBadge: true,
           playSound: true,
           enableVibration: true,
@@ -55,12 +53,12 @@ class NotificationService {
         ),
       );
 
-      // Create a high-priority channel for critical notifications
+      // Events notifications channel
       await androidPlugin.createNotificationChannel(
         const AndroidNotificationChannel(
-          'critical_reminders',
-          'Critical Reminders',
-          description: 'High priority notifications',
+          'events_channel',
+          'Events',
+          description: 'Reminders for your Events',
           importance: Importance.max,
           showBadge: true,
           playSound: true,
@@ -150,14 +148,11 @@ class NotificationService {
     required String title,
     required String body,
     required DateTime scheduledTime,
-    bool isCritical = false,
   }) async {
-    final notifId = _uuidToInt(uuid);
-    final channelId = isCritical ? 'critical_reminders' : 'reminders_channel';
-    final channelName = isCritical ? 'Critical Reminders' : 'Reminders';
-    final channelDescription = isCritical
-        ? 'High priority notifications'
-        : 'Task and event reminders';
+    final notifId = _uuidToInt("task-$uuid");
+    final channelId = 'tasks_channel';
+    final channelName ='Tasks';
+    final channelDescription = 'Reminders for your Tasks';
 
     await _notifications.zonedSchedule(
       notifId,
@@ -168,7 +163,6 @@ class NotificationService {
         channelId: channelId,
         channelName: channelName,
         channelDescription: channelDescription,
-        isCritical: isCritical,
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
 
@@ -184,12 +178,10 @@ class NotificationService {
     required DateTime scheduledTime,
     bool isCritical = false,
   }) async {
-    final notifId = _uuidToInt(uuid);
-    final channelId = isCritical ? 'critical_reminders' : 'reminders_channel';
-    final channelName = isCritical ? 'Critical Reminders' : 'Reminders';
-    final channelDescription = isCritical
-        ? 'High priority notifications'
-        : 'Event reminders';
+    final notifId = _uuidToInt("pre-event-$uuid");
+    final channelId = 'events_channel';
+    final channelName = 'Events';
+    final channelDescription = 'Pre-reminder for your Events';
 
     await _notifications.zonedSchedule(
       notifId,
@@ -200,7 +192,6 @@ class NotificationService {
         channelId: channelId,
         channelName: channelName,
         channelDescription: channelDescription,
-        isCritical: isCritical,
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
 
@@ -214,14 +205,12 @@ class NotificationService {
     required String title,
     required String body,
     required DateTime scheduledTime,
-    bool isCritical = false,
   }) async {
-    final notifId = _uuidToInt(uuid);
-    final channelId = isCritical ? 'critical_reminders' : 'reminders_channel';
-    final channelName = isCritical ? 'Critical Reminders' : 'Reminders';
-    final channelDescription = isCritical
-        ? 'High priority notifications'
-        : 'Event reminders';
+    final notifId = _uuidToInt("event-$uuid");
+    final channelId = 'events_channel';
+    final channelName = 'Events';
+    final channelDescription =
+        'Reminders for your Events';
     await _notifications.zonedSchedule(
       notifId,
       title,
@@ -231,7 +220,6 @@ class NotificationService {
         channelId: channelId,
         channelName: channelName,
         channelDescription: channelDescription,
-        isCritical: isCritical,
         autoCancel: false,
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -256,8 +244,8 @@ class NotificationService {
       tz.TZDateTime.from(scheduledTime, tz.local),
       NotificationDetails(
         android: AndroidNotificationDetails(
-          'reminders_channel',
-          'Reminders',
+          'events_channel',
+          'Events',
           channelDescription: 'Auto cleanUp for events end',
           importance: Importance.low,
           priority: Priority.low,
@@ -285,7 +273,7 @@ class NotificationService {
   } // Cancel all
 
   static Future<void> cancelPreEvent(String uuid) async {
-    await _notifications.cancel(_uuidToInt("event-$uuid"));
+    await _notifications.cancel(_uuidToInt("pre-event-$uuid"));
   }
 
   // Simple test notification for debugging
@@ -300,7 +288,6 @@ class NotificationService {
           'Critical Reminders',
           importance: Importance.max,
           priority: Priority.max,
-          fullScreenIntent: true,
           enableVibration: true,
           enableLights: true,
         ),
@@ -315,8 +302,7 @@ NotificationDetails _createNotificationDetails({
   required String channelId,
   required String channelName,
   required String channelDescription,
-  required bool isCritical,
-  bool autoCancel = true, // Default to true
+  bool autoCancel = true,
 }) {
   return NotificationDetails(
     android: AndroidNotificationDetails(
@@ -326,11 +312,10 @@ NotificationDetails _createNotificationDetails({
       channelDescription: channelDescription,
       importance: Importance.max,
       priority: Priority.max,
-      fullScreenIntent: isCritical,
+      fullScreenIntent: false,
       category: AndroidNotificationCategory.reminder,
       visibility: NotificationVisibility.public,
       autoCancel: autoCancel,
-      // Use the parameter here
       enableVibration: true,
     ),
     iOS: const DarwinNotificationDetails(

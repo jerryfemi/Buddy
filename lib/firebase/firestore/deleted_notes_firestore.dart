@@ -25,7 +25,7 @@ class DeletedNoteFirestore {
       content: note.content,
       createdAt: note.createdAt,
       updatedAt: note.updatedAt,
-      deletedAt: note.deletedAt,
+      deletedAt: note.deletedAt!,
       contentJson: note.contentJson,
     );
   }

@@ -7,7 +7,7 @@ import 'package:flutter_timezone/flutter_timezone.dart'; // <<<--- CHANGED THIS 
 void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -25,19 +25,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initData() async {
-    try {
+
       _timezone =
           await FlutterTimezone.getLocalTimezone(); // <<<--- CHANGED THIS LINE
-    } catch (e) {
-      print('Could not get the local timezone');
-    }
-    try {
+
       _availableTimezones =
           await FlutterTimezone.getAvailableTimezones(); // <<<--- CHANGED THIS LINE
       _availableTimezones.sort();
-    } catch (e) {
-      print('Could not get available timezones');
-    }
+
     if (mounted) {
       setState(() {});
     }

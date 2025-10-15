@@ -5,7 +5,6 @@ import 'package:buddy/models/previous_events_model.dart';
 import 'package:buddy/models/task_model.dart';
 import 'package:buddy/models/theme_model.dart';
 import 'package:buddy/providers/theme_preference_provider.dart';
-import 'package:buddy/screens/navigation_screen.dart';
 import 'package:buddy/services/notification_services.dart';
 import 'package:buddy/themes/dark_theme.dart';
 import 'package:buddy/themes/light_mode.dart';
@@ -59,12 +58,11 @@ void main() async {
 
   runApp(
     ProviderScope(
-      child:
-          // DevicePreview(
-          //   enabled: !kReleaseMode,
-          //   defaultDevice: Devices.ios.iPhone15Pro,
-          //   builder: (context) =>
-          const MyApp(),
+      child: DevicePreview(
+        enabled: false,
+        defaultDevice: Devices.ios.iPhone15Pro,
+        builder: (context) => const MyApp(),
+      ),
     ),
   );
 }

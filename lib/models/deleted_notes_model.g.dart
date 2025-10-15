@@ -20,7 +20,7 @@ class DeletedNoteAdapter extends TypeAdapter<DeletedNote> {
       id: fields[0] as String,
       content: fields[1] as String,
       contentJson: fields[2] as String,
-      deletedAt: fields[3] as DateTime,
+      deletedAt: fields[3] as DateTime?,
       createdAt: fields[4] as DateTime,
       updatedAt: fields[5] as DateTime,
     );
