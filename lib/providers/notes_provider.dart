@@ -55,7 +55,8 @@ class NotesNotifier extends StateNotifier<List<Note>> {
     this._ref,
     this._syncService,
     this._deletedNotesSyncService,
-  ) : super(_box.values.toList()) {
+  ) : super([]) {
+loadNotes();
 
     // listen for hive changes
     listener = () {
@@ -76,6 +77,12 @@ class NotesNotifier extends StateNotifier<List<Note>> {
   }
 
   //
+
+  // initialize tasks
+  Future<void> loadNotes() async {
+    final initial = _box.values.toList();
+    if (mounted) state = initial;
+  }
 
   // restore note
   Future<void> restoreNote(Note note) async {

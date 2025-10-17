@@ -38,8 +38,8 @@ class TasksNotifier extends StateNotifier<List<Task>> {
   final Ref _ref;
   late final VoidCallback listener;
 
-  TasksNotifier(this._box, this._ref, this._syncService)
-    : super(_box.values.toList()) {
+  TasksNotifier(this._box, this._ref, this._syncService) : super([]) {
+    loadTasks();
 
     // listen for hive changes
     listener = () {
@@ -61,6 +61,12 @@ class TasksNotifier extends StateNotifier<List<Task>> {
 
   // repository for task notifications
   final taskNotificationRepo = TaskNotificationRepository();
+
+  // initialize tasks
+  Future<void> loadTasks() async {
+    final initial = _box.values.toList();
+    if (mounted) state = initial;
+  }
 
   // add tasks
   void createTask({

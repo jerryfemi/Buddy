@@ -51,24 +51,43 @@ class NoteSyncService {
 
   // Pull Firestore notes → Hive
   Future<void> syncFromFirestore() async {
-    final snapshot = await _notesRef.get();
+    try {
+      final snapshot = await _notesRef.get();
+      final updates = <String, Note>{};
 
-    for (var doc in snapshot.docs) {
-      final noteFirestore = NoteFirestore.fromMap(doc.id, doc.data());
-      final existingNote = noteBox.get(noteFirestore.id);
+      for (var doc in snapshot.docs) {
+        final noteFirestore = NoteFirestore.fromMap(doc.id, doc.data());
+        final existingNote = noteBox.get(noteFirestore.id);
 
-      if (existingNote == null ||
-          noteFirestore.updatedAt.isAfter(existingNote.updatedAt)) {
-        noteBox.put(noteFirestore.id, noteFirestore.toHive());
+        if (existingNote == null ||
+            noteFirestore.updatedAt.isAfter(existingNote.updatedAt)) {
+          noteBox.put(noteFirestore.id, noteFirestore.toHive());
+        }
       }
+
+      if (updates.isNotEmpty) {
+        await noteBox.putAll(updates);
+      }
+    } catch (e) {
+      print(' NOTE SYNC FROM FIRESTORE ERROR: $e');
     }
   }
 
   // Two-way sync
   Future<void> syncAll() async {
-    for (var note in noteBox.values) {
-      await syncToFirestore(note);
+    try {
+      final uploadFutures = noteBox.values.map((note) {
+        return syncToFirestore(note).catchError((e) {
+          print('⚠️ Failed to sync note ${note.id}: $e');
+        });
+      }).toList();
+
+      await Future.wait([
+        Future.wait(uploadFutures),
+        syncFromFirestore(),
+      ]);
+    } catch (e) {
+      print('⚠️ Note syncAll error: $e');
     }
-    await syncFromFirestore();
   }
 }

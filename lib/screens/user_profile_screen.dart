@@ -49,23 +49,29 @@ class _SettingsScreenState extends ConsumerState<ProfileScreen> {
       final currentProfile = ref.read(userProfileProvider).value;
       final oldPhotoUrl = currentProfile?['photoUrl'] as String?;
 
-      // ✅ upload with extension + cache-busting URL
+      //  upload with extension + cache-busting URL
       final freshPhotoUrl = await storageService.uploadProfileImage(
         uid,
         _imageFile!,
       );
 
-      // ✅ Update Firestore with fresh URL
+      //  Update Firestore with fresh URL
       await ref.read(userFirestoreProvider).updateProfile(uid, {
         'photoUrl': freshPhotoUrl,
         'updatedAt': DateTime.now(),
       });
 
-      // ✅ invalidate to refresh UI, THEN clear local image
-      ref.invalidate(userProfileProvider);
+      //  update the UI,
+      ref.read(userProfileProvider.notifier).updateProfile({
+        ...?currentProfile,
+        'photoUrl': freshPhotoUrl,
+        'updatedAt': DateTime.now(),
+      });
+      // refresh the UI
       setState(() => _imageFile = null);
 
-      // ✅ delete old image only after success
+
+      //  delete old image only after success
       if (oldPhotoUrl != null &&
           oldPhotoUrl.isNotEmpty &&
           oldPhotoUrl != freshPhotoUrl &&
@@ -318,9 +324,7 @@ InputDecoration _decoration(BuildContext context, String hint) {
       Icons.person,
       color: Theme.of(context).colorScheme.tertiary,
     ),
-    hintStyle: TextStyle(
-      color: Theme.of(context).colorScheme.tertiary,
-    ),
+    hintStyle: TextStyle(color: Theme.of(context).colorScheme.tertiary),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(

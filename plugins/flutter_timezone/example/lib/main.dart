@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
-import 'package:flutter_timezone/flutter_timezone.dart'; // <<<--- CHANGED THIS LINE
+import 'package:flutter_timezone/flutter_timezone.dart';
 
 void main() => runApp(MyApp());
 

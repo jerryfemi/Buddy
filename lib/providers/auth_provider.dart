@@ -1,4 +1,5 @@
 import 'package:buddy/firebase/auth/auth_service.dart';
+import 'package:buddy/services/notification_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -72,23 +73,20 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, User?>((ref) {
 });
 
 Future<void> clearData() async {
-
-    if (Hive.isBoxOpen('notesBox')) {
-      await Hive.box<Note>('notesBox').clear();
-    }
-    if (Hive.isBoxOpen('tasksBox')) {
-      await Hive.box<Task>('tasksBox').clear();
-    }
-    if (Hive.isBoxOpen('eventsBox')) {
-      await Hive.box<CalendarEvent>('eventsBox').clear();
-    }
-    if (Hive.isBoxOpen('deletedNotesBox')) {
-      await Hive.box<DeletedNote>('deletedNotesBox').clear();
-    }
-    if (Hive.isBoxOpen('previousEventsBox')) {
-      await Hive.box<PreviousEvents>('previousEventsBox').clear();
-    }
-
+  await NotificationService.cancelAll();
+  if (Hive.isBoxOpen('notesBox')) {
+    await Hive.box<Note>('notesBox').clear();
+  }
+  if (Hive.isBoxOpen('tasksBox')) {
+    await Hive.box<Task>('tasksBox').clear();
+  }
+  if (Hive.isBoxOpen('eventsBox')) {
+    await Hive.box<CalendarEvent>('eventsBox').clear();
+  }
+  if (Hive.isBoxOpen('deletedNotesBox')) {
+    await Hive.box<DeletedNote>('deletedNotesBox').clear();
+  }
+  if (Hive.isBoxOpen('previousEventsBox')) {
+    await Hive.box<PreviousEvents>('previousEventsBox').clear();
+  }
 }
-
-

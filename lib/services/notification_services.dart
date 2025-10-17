@@ -17,7 +17,7 @@ class NotificationService {
     return int.parse(part, radix: 16) & 0x7FFFFFFF;
   }
 
-  // Call this ONCE in main.dart|
+  // Call this  in main.dart
   static Future<void> init() async {
     tz.initializeTimeZones();
     final String timeZoneName = await FlutterTimezone.getLocalTimezone();
@@ -235,7 +235,7 @@ class NotificationService {
     required String body,
     required DateTime scheduledTime,
   }) async {
-    final notifId = _uuidToInt(uuid) + 1;
+    final notifId = _uuidToInt("event-end-$uuid") ;
 
     await _notifications.zonedSchedule(
       notifId,
@@ -274,6 +274,11 @@ class NotificationService {
 
   static Future<void> cancelPreEvent(String uuid) async {
     await _notifications.cancel(_uuidToInt("pre-event-$uuid"));
+  }
+
+
+  static Future<void> cancelEventEnd(String uuid) async {
+    await _notifications.cancel(_uuidToInt("event-end-$uuid"));
   }
 
   // Simple test notification for debugging

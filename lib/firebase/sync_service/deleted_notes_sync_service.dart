@@ -29,14 +29,23 @@ class DeletedNotesSyncService {
 
   //  Push all local deleted notes → Firestore
   Future<void> syncToFirestore() async {
-    for (var note in deletedNoteBox.values) {
-      final firestoreNote = DeletedNoteFirestore.fromHive(note);
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('deleted_notes')
-          .doc(note.id)
-          .set(firestoreNote.toMap(), SetOptions(merge: true));
+    try {
+      final uploadFutures = deletedNoteBox.values.map((note) {
+        final firestoreNote = DeletedNoteFirestore.fromHive(note);
+        return _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('deleted_notes')
+            .doc(note.id)
+            .set(firestoreNote.toMap(), SetOptions(merge: true))
+            .catchError((e) {
+          print('⚠️ Failed to sync deleted note ${note.id}: $e');
+        });
+      }).toList();
+
+      await Future.wait(uploadFutures);
+    } catch (e) {
+      print('⚠️ Deleted notes sync to Firestore error: $e');
     }
   }
 
@@ -90,7 +99,9 @@ class DeletedNotesSyncService {
 
   //  Full sync (Firestore ↔ Hive)
   Future<void> fullSync() async {
-    await syncFromFirestore();
-    await syncToFirestore();
+    await Future.wait([
+      syncFromFirestore(),
+      syncToFirestore(),
+    ]);
   }
 }

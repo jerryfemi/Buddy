@@ -32,24 +32,39 @@ class PreviousEventSyncService {
 
   // Pull Firestore previous events → Hive
   Future<void> syncFromFirestore() async {
-    final snapshot = await _previousEventsRef.get();
+      final snapshot = await _previousEventsRef.get();
+      final updates = <String, PreviousEvents>{};
 
-    for (var doc in snapshot.docs) {
-      final eventFirestore = PreviousEventFirestore.fromMap(doc.id, doc.data());
-      final existingEvent = previousEventBox.get(eventFirestore.id);
+      for (var doc in snapshot.docs) {
+        final eventFirestore = PreviousEventFirestore.fromMap(
+          doc.id,
+          doc.data(),
+        );
+        final existingEvent = previousEventBox.get(eventFirestore.id);
 
-      if (existingEvent == null ||
-          eventFirestore.startDateTime.isAfter(existingEvent.startDateTime)) {
-        previousEventBox.put(eventFirestore.id, eventFirestore.toHive());
+        if (existingEvent == null ||
+            eventFirestore.startDateTime.isAfter(existingEvent.startDateTime)) {
+          updates[eventFirestore.id] = eventFirestore.toHive();
+        }
       }
-    }
+
+      if (updates.isNotEmpty) {
+        await previousEventBox.putAll(updates);
+      }
+
   }
 
   // Two-way sync
   Future<void> syncAll() async {
-    for (var event in previousEventBox.values) {
-      await syncToFirestore(event);
+
+      final uploadFutures = previousEventBox.values.map((event) {
+        return syncToFirestore(event).catchError((e) {
+        });
+      }).toList();
+
+      await Future.wait([
+        Future.wait(uploadFutures),
+        syncFromFirestore(),
+      ]);
     }
-    await syncFromFirestore();
   }
-}

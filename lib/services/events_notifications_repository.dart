@@ -43,8 +43,9 @@ class EventsNotificationsRepository {
   Future<void> cancelEventReminder(CalendarEvent event) async {
     // cancel main event
     await NotificationService.cancelEvent(event.id);
+    await NotificationService.cancelEventEnd(event.id);
 
-    // cancel pre event reminders too
+    // cancel pre event reminders
     for (final minutes in event.reminders) {
       final preEventUid = '${event.id}-$minutes';
       await NotificationService.cancelPreEvent(preEventUid);

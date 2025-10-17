@@ -48,24 +48,43 @@ class CalendarEventSyncService {
 
   // Pull Firestore events → Hive
   Future<void> syncFromFirestore() async {
-    final snapshot = await _eventsRef.get();
+    try {
+      final snapshot = await _eventsRef.get();
+      final updates = <String, CalendarEvent>{};
 
-    for (var doc in snapshot.docs) {
-      final eventFirestore = CalendarEventFirestore.fromMap(doc.id, doc.data());
-      final existingEvent = eventBox.get(eventFirestore.id);
+      for (var doc in snapshot.docs) {
+        final eventFirestore = CalendarEventFirestore.fromMap(
+          doc.id,
+          doc.data(),
+        );
+        final existingEvent = eventBox.get(eventFirestore.id);
 
-      if (existingEvent == null ||
-          eventFirestore.startDateTime.isAfter(existingEvent.startDateTime)) {
-        eventBox.put(eventFirestore.id, eventFirestore.toHive());
+        if (existingEvent == null ||
+            eventFirestore.startDateTime.isAfter(existingEvent.startDateTime)) {
+          updates[eventFirestore.id] = eventFirestore.toHive();
+        }
       }
+
+      if (updates.isNotEmpty) {
+        await eventBox.putAll(updates);
+      }
+    } catch (e) {
+      print('⚠️ Event sync from Firestore error: $e');
     }
   }
 
   // Two-way sync
   Future<void> syncAll() async {
-    for (var event in eventBox.values) {
-      await syncToFirestore(event);
+    try {
+      final uploadFutures = eventBox.values.map((event) {
+        return syncToFirestore(event).catchError((e) {
+          print('⚠️ Failed to sync event ${event.id}: $e');
+        });
+      }).toList();
+
+      await Future.wait([Future.wait(uploadFutures), syncFromFirestore()]);
+    } catch (e) {
+      print('⚠️ Event syncAll error: $e');
     }
-    await syncFromFirestore();
   }
 }

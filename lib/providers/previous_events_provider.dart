@@ -35,8 +35,8 @@ class PreviousEventsNotifier extends StateNotifier<List<PreviousEvents>> {
   final PreviousEventSyncService? _syncService;
   late final VoidCallback listener;
 
-  PreviousEventsNotifier(this._box, this._syncService)
-    : super(_box.values.toList()){
+  PreviousEventsNotifier(this._box, this._syncService) : super([]) {
+    loadPreEvents();
 
     // listen for hive changes
     listener = () {
@@ -54,6 +54,14 @@ class PreviousEventsNotifier extends StateNotifier<List<PreviousEvents>> {
     // remove listener
     _box.listenable().removeListener(listener);
     super.dispose();
+  }
+
+  // load previousEe=vents
+
+  // initialize tasks
+  Future<void> loadPreEvents() async {
+    final initial = _box.values.toList();
+    if (mounted) state = initial;
   }
 
   // addPreviousEvents
@@ -87,15 +95,20 @@ class PreviousEventsNotifier extends StateNotifier<List<PreviousEvents>> {
 
   // clear all
   Future<void> clearPreviousEvents() async {
+    final preEvents = _box.values.toList();
+
+    // clear hive box
     await _box.clear();
-    state = _box.values.toList();
+    state = [];
 
     // delete all from fireStore
     if (_syncService != null) {
-      // loop through all prevEvents and delete one by one
-      for (final event in _box.values.toList()) {
-        await _syncService.deleteFromFirestorePermanently(event.id);
-      }
+
+      await Future.wait(
+        preEvents.map((prev) async {
+          await _syncService.deleteFromFirestorePermanently(prev.id);
+        }),
+      );
     }
   }
 }

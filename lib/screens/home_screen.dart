@@ -35,11 +35,14 @@ class HomeScreen extends StatelessWidget {
               leading: Icon(
                 Icons.exit_to_app,
                 color: Theme.of(context).colorScheme.primary,
-                size: context.adaptSize(30.sp,tab: 20.sp)
+                size: context.adaptSize(30.sp, tab: 20.sp),
               ),
               title: Text(
                 'Sign out',
-                style: TextStyle(fontWeight: FontWeight.w400, fontSize: context.adaptSize(16.sp,tab:12.sp)),
+                style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: context.adaptSize(16.sp, tab: 12.sp),
+                ),
               ),
             ),
             onTap1: () {
@@ -57,14 +60,14 @@ class HomeScreen extends StatelessWidget {
               icon: Icon(
                 Icons.person,
                 color: Theme.of(context).colorScheme.primary,
-                size: context.adaptSize(30.sp,tab:20.sp),
+                size: context.adaptSize(30.sp, tab: 20.sp),
               ),
             ),
             leading2: ThemeToggleButton(),
             header: Image.asset(
               'lib/assets/images/buddy_logo.png',
-              height: context.adaptSize(150.h,tab:110.h),
-              width: context.adaptSize(150.w,tab:110.w),
+              height: context.adaptSize(150.h, tab: 110.h),
+              width: context.adaptSize(150.w, tab: 110.w),
             ),
           );
         },
@@ -73,7 +76,7 @@ class HomeScreen extends StatelessWidget {
         physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
           MySliverAppBar(
-            title:'Home',
+            title: 'Home',
             actions: [
               Builder(
                 builder: (context) {
@@ -95,7 +98,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        // Row with Tasks + Notes side by side
+                        //Row with Tasks + Notes side by side
                         Row(
                           children: [
                             Expanded(
@@ -251,7 +254,7 @@ class _ThemeToggleButtonState extends ConsumerState<ThemeToggleButton> {
         icon: Icon(
           isDark ? Icons.wb_sunny_rounded : Icons.nights_stay,
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-          size: context.adaptSize(30.sp,tab:20.sp)
+          size: context.adaptSize(30.sp, tab: 20.sp),
         ),
       ),
     );
@@ -275,9 +278,8 @@ Future<void> showSignOutDialog(BuildContext context, WidgetRef ref) async {
             foregroundColor: Colors.white,
           ),
           onPressed: () async {
-            Navigator.of(context).pop(); // Close dialog
+            Navigator.of(context).pop();
             await ref.read(authNotifierProvider.notifier).signOut();
-            // Optionally: Navigate to login screen if needed
           },
           child: const Text('Sign Out'),
         ),

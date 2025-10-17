@@ -63,8 +63,9 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
     this._ref,
     this._syncService,
     this._eventSyncService,
-  ) : super(_box.values.toList()) {
+  ) : super([]) {
     _refreshState();
+    loadEvents();
 
     // define the listener
     listener = () {
@@ -85,6 +86,12 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
   }
 
   final _eventsNotifs = EventsNotificationsRepository();
+
+  // initialize tasks
+  Future<void> loadEvents() async {
+    final initial = _box.values.toList();
+    if (mounted) state = initial;
+  }
 
   //  Add new event
   void addEvent({
@@ -204,6 +211,11 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
     );
 
     _box.put(event.id, updated);
+
+    // schedule new notifications for rolled over events
+    _eventsNotifs.schedulePreEventReminders(updated);
+    _eventsNotifs.scheduleEventReminder(updated);
+
     return updated;
   }
 

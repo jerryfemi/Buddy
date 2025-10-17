@@ -30,23 +30,43 @@ class TaskSyncService {
 
   // Pull Firestore tasks → Hive
   Future<void> syncFromFirestore() async {
-    final snapshot = await _tasksRef.get();
+    try {
+      final snapshot = await _tasksRef.get();
+      final updates = <String, Task>{};
 
-    for (var doc in snapshot.docs) {
-      final taskFirestore = TaskFirestore.fromMap(doc.id, doc.data());
-      final existingTask = taskBox.get(taskFirestore.id);
+      for (var doc in snapshot.docs) {
+        final taskFirestore = TaskFirestore.fromMap(doc.id, doc.data());
+        final existingTask = taskBox.get(taskFirestore.id);
 
-      if (existingTask == null) {
-        taskBox.put(taskFirestore.id, taskFirestore.toHive());
+        if (existingTask == null) {
+          updates[taskFirestore.id] = taskFirestore.toHive();
+        }
       }
+
+      if (updates.isNotEmpty) {
+        await taskBox.putAll(updates);
+      }
+    } catch (e) {
+      print('⚠️ Task sync from Firestore error: $e');
     }
   }
 
   // Two-way sync
   Future<void> syncAll() async {
-    for (var task in taskBox.values) {
-      await syncToFirestore(task);
+    try {
+      final uploadFutures = taskBox.values.map((task) {
+        return syncToFirestore(task).catchError((e) {
+          print('⚠️ Failed to sync task ${task.id}: $e');
+        });
+      }).toList();
+
+      await Future.wait([
+        Future.wait(uploadFutures),
+        syncFromFirestore(),
+      ]);
+    } catch (e) {
+      print('⚠️ Task syncAll error: $e');
     }
-    await syncFromFirestore();
   }
 }
+
