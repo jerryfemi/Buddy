@@ -17,7 +17,7 @@ class TasksHomePreview extends ConsumerWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(15.r),
       enableFeedback: true,
-      onTap: () => NavigationScreen.switchToTab(context, 2),
+      onTap: () => NavigationScreen.switchToTab( 2),
       child: Container(
         padding: EdgeInsets.symmetric(
           vertical: context.adaptSize(9.h, ),

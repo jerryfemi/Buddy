@@ -8,14 +8,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/add_events_sheet.dart';
 import '../widgets/calendar_sliver_persistent_header.dart';
 
-class RemindersScreen extends StatefulWidget {
-  const RemindersScreen({super.key});
+class EventsScreen extends StatefulWidget {
+  const EventsScreen({super.key});
 
   @override
-  State<RemindersScreen> createState() => _RemindersScreenState();
+  State<EventsScreen> createState() => _RemindersScreenState();
 }
 
-class _RemindersScreenState extends State<RemindersScreen> {
+class _RemindersScreenState extends State<EventsScreen> {
   void openAddEventsDialog() {
     showModalBottomSheet(
       isDismissible: false,

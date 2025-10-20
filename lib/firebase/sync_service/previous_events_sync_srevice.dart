@@ -21,7 +21,7 @@ class PreviousEventSyncService {
     final docRef = _previousEventsRef.doc(event.id);
     final eventFirestore = PreviousEventFirestore.fromHive(event);
 
-    await docRef.set(eventFirestore.toMap(), SetOptions(merge: true));
+     docRef.set(eventFirestore.toMap(), SetOptions(merge: true));
   }
 
   // Delete previous event from Firestore
@@ -49,7 +49,7 @@ class PreviousEventSyncService {
       }
 
       if (updates.isNotEmpty) {
-        await previousEventBox.putAll(updates);
+         previousEventBox.putAll(updates).catchError((e){});
       }
 
   }
@@ -62,7 +62,7 @@ class PreviousEventSyncService {
         });
       }).toList();
 
-      await Future.wait([
+       Future.wait([
         Future.wait(uploadFutures),
         syncFromFirestore(),
       ]);

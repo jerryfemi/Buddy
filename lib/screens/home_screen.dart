@@ -171,7 +171,7 @@ class HomeScreen extends StatelessWidget {
                       return Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: 15.w,
-                          vertical: 8.h,
+                          vertical: 6.h,
                         ),
                         child: widget
                             .animate(delay: (250 * index).ms)

@@ -30,7 +30,7 @@ class TaskSyncService {
 
   // Pull Firestore tasks → Hive
   Future<void> syncFromFirestore() async {
-    try {
+
       final snapshot = await _tasksRef.get();
       final updates = <String, Task>{};
 
@@ -44,19 +44,15 @@ class TaskSyncService {
       }
 
       if (updates.isNotEmpty) {
-        await taskBox.putAll(updates);
+         taskBox.putAll(updates).catchError((e){});
       }
-    } catch (e) {
-      print('⚠️ Task sync from Firestore error: $e');
     }
-  }
 
   // Two-way sync
   Future<void> syncAll() async {
-    try {
+
       final uploadFutures = taskBox.values.map((task) {
         return syncToFirestore(task).catchError((e) {
-          print('⚠️ Failed to sync task ${task.id}: $e');
         });
       }).toList();
 
@@ -64,9 +60,6 @@ class TaskSyncService {
         Future.wait(uploadFutures),
         syncFromFirestore(),
       ]);
-    } catch (e) {
-      print('⚠️ Task syncAll error: $e');
-    }
   }
 }
 

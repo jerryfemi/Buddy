@@ -56,7 +56,7 @@ class GlobalSyncManager {
   }
   // Sync ALL
   Future<void> syncAll() async {
-    await Future.wait([
+     Future.wait([
       _noteSync.syncAll(),
       _deletedNotesSync.fullSync(),
       _calendarEventSync.syncAll(),

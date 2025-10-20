@@ -5,8 +5,6 @@ import 'package:buddy/models/previous_events_model.dart';
 import 'package:buddy/models/task_model.dart';
 import 'package:buddy/models/theme_model.dart';
 import 'package:buddy/providers/theme_preference_provider.dart';
-import 'package:buddy/screens/home_screen.dart';
-import 'package:buddy/screens/navigation_screen.dart';
 import 'package:buddy/services/notification_services.dart';
 import 'package:buddy/themes/dark_theme.dart';
 import 'package:buddy/themes/light_mode.dart';
@@ -58,6 +56,7 @@ void main() async {
   await Hive.openBox<PreviousEvents>('previousEventsBox');
   await Hive.openBox<ThemePreference>('themeBox');
 
+
   runApp(
     ProviderScope(
       child: DevicePreview(
@@ -69,12 +68,18 @@ void main() async {
   );
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider);
     return ScreenUtilInit(
       designSize: const Size(360, 690),

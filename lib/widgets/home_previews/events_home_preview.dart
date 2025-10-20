@@ -12,7 +12,7 @@ class EventsHomePreview extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
-      onTap: () => NavigationScreen.switchToTab(context, 3),
+      onTap: () => NavigationScreen.switchToTab(3),
       borderRadius: BorderRadius.circular(15.r),
       child: Container(
         padding: EdgeInsets.symmetric(

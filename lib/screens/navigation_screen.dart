@@ -1,10 +1,8 @@
 import 'package:buddy/providers/global_sync_provider.dart';
 import 'package:buddy/providers/tasks_provider.dart';
+import 'package:buddy/screens/events_screen.dart';
 import 'package:buddy/screens/notes_screen.dart';
-import 'package:buddy/screens/reminders_screen.dart';
 import 'package:buddy/screens/tasks_screen.dart';
-import 'package:buddy/services/events_notifications_repository.dart';
-import 'package:buddy/services/task_notifications_repository.dart';
 import 'package:buddy/utils/reschedule_notifs.dart';
 import 'package:buddy/widgets/custom_nav_bar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -13,22 +11,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/calendar_event_provider.dart';
 import '../providers/deleted_notes_provider.dart';
+import '../services/shortcut_handler.dart';
 import 'home_screen.dart';
 
+final GlobalKey<NavigationScreenState> navigationScreenKey =
+    GlobalKey<NavigationScreenState>();
+
 class NavigationScreen extends ConsumerStatefulWidget {
-  const NavigationScreen({super.key});
+  NavigationScreen() : super(key: navigationScreenKey);
 
   @override
-  ConsumerState<NavigationScreen> createState() => _NavigationScreenState();
+  ConsumerState<NavigationScreen> createState() => NavigationScreenState();
 
   //  helper for HomeScreen to switch tabs
-  static void switchToTab(BuildContext context, int index) {
-    final state = context.findAncestorStateOfType<_NavigationScreenState>();
-    state?._onTabTapped(index);
+  static void switchToTab(int index) {
+    navigationScreenKey.currentState?.switchTab(index);
+  }
+
+  static Future<void> openShortcut(
+    int index,
+    Future<void> Function() afterSwitch,
+  ) async {
+    navigationScreenKey.currentState?.switchTab(index);
+
+    await Future.delayed(const Duration(milliseconds: 100));
+    await afterSwitch();
   }
 }
 
-class _NavigationScreenState extends ConsumerState<NavigationScreen> {
+class NavigationScreenState extends ConsumerState<NavigationScreen> {
   @override
   void initState() {
     super.initState();
@@ -36,7 +47,16 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     // Initialize sync after the screen has rendered
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeSync();
+      if (mounted) {
+        ShortcutHandler.init();
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    ShortcutHandler.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeSync() async {
@@ -45,8 +65,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final connectivityResult = await Connectivity().checkConnectivity();
 
     if (connectivityResult == ConnectivityResult.none) {
-      // No internet - skip sync but still show UI
-      print('No internet connection - skipping initial sync');
       return;
     }
     final syncManager = ref.read(globalSyncManagerProvider);
@@ -56,7 +74,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
       Future.delayed(const Duration(milliseconds: 500), () async {
         // Run sync in background
-        await syncManager.syncAll();
+        syncManager.syncAll().catchError((error) {});
 
         // Cleanup expired items
         ref.read(eventsProvider.notifier).cleanupExpiredEvents();
@@ -64,11 +82,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         ref.read(deletedNotesProvider.notifier).cleanupExpiredNotes();
 
         //reschedule notifications
-        await RescheduleNotifs(ref).run();
+        await RescheduleNotifs(ref).run().catchError((error) {});
       });
     }
   }
-
 
   int _currentIndex = 0;
 
@@ -76,8 +93,12 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     HomeScreen(),
     NotesScreen(),
     TasksScreen(),
-    RemindersScreen(),
+    EventsScreen(),
   ];
+
+  void switchTab(int index) {
+    _onTabTapped(index);
+  }
 
   void _onTabTapped(int index) {
     setState(() => _currentIndex = index);

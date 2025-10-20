@@ -58,7 +58,10 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                     children: [
                       TextButton(
                         onPressed: () => showClearAllDialog(context, ref),
-                        child: Text('clear all',style: TextStyle(fontSize: 10.sp),),
+                        child: Text(
+                          'clear all',
+                          style: TextStyle(fontSize: 10.sp),
+                        ),
                       ),
                     ],
                   ),
@@ -107,14 +110,18 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                             : 'No upcoming events')
                       : 'No previous events',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.tertiary,fontSize:context.isTab? 10.sp:null
+                    color: Theme.of(context).colorScheme.tertiary,
+                    fontSize: context.isTab ? 10.sp : null,
                   ),
                 ),
                 // Only allow adding events in "upcoming" mode
                 if (showUpcoming)
                   TextButton(
                     onPressed: openAddEventsDialog,
-                    child:  Text('Add Events',style: TextStyle(fontSize:context.isTab? 10.sp: null),),
+                    child: Text(
+                      'Add Events',
+                      style: TextStyle(fontSize: context.isTab ? 10.sp : null),
+                    ),
                   ),
               ],
             ),
@@ -145,8 +152,8 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                 }),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal:  context.adaptSize(10.w,tab: 8.w),
-                    vertical:  context.adaptSize(8.h,tab: 6.h),
+                    horizontal: context.adaptSize(10.w, tab: 8.w),
+                    vertical: context.adaptSize(8.h, tab: 6.h),
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(6.r),
@@ -162,7 +169,7 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                     child: Text(
                       'Events',
                       style: TextStyle(
-                        fontSize: context.adaptSize(14.sp,tab: 12.sp),
+                        fontSize: context.adaptSize(14.sp, tab: 12.sp),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -179,8 +186,8 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                 }),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal:  context.adaptSize(10.w,tab: 8.w),
-                    vertical:  context.adaptSize(8.h,tab: 6.h),
+                    horizontal: context.adaptSize(10.w, tab: 8.w),
+                    vertical: context.adaptSize(8.h, tab: 6.h),
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(6.r),
@@ -196,7 +203,7 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
                     child: Text(
                       'Previous events',
                       style: TextStyle(
-                        fontSize: context.adaptSize(14.sp,tab: 12.sp),
+                        fontSize: context.adaptSize(14.sp, tab: 12.sp),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -268,11 +275,9 @@ Future<void> showClearAllDialog(BuildContext context, WidgetRef ref) async {
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
           ),
-          onPressed: () async {
+          onPressed: () {
             Navigator.of(context).pop(); // Close dialog
-            await ref
-                .read(previousEventsProvider.notifier)
-                .clearPreviousEvents();
+            ref.read(previousEventsProvider.notifier).clearPreviousEvents();
           },
           child: const Text('Clear all'),
         ),

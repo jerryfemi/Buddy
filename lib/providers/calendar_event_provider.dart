@@ -124,7 +124,7 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
     _refreshState();
     // sync events to fireStore
     if (_syncService != null) {
-      _syncService.syncToFirestore(newEvent);
+      _syncService.syncToFirestore(newEvent).catchError((error) {});
     }
   }
 
@@ -143,7 +143,9 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
     // delete event from fireStore
     if (_syncService != null && _eventSyncService != null) {
       final previousService = _eventSyncService;
-      _syncService.moveToPreviousEvents(event, previousService);
+      _syncService
+          .moveToPreviousEvents(event, previousService)
+          .catchError((error) {});
     }
   }
 
@@ -169,7 +171,9 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
       // remove from firestore collection
       if (_syncService != null && _eventSyncService != null) {
         final previousService = _eventSyncService;
-        _syncService.moveToPreviousEvents(event, previousService);
+        _syncService
+            .moveToPreviousEvents(event, previousService)
+            .catchError((error) {});
       }
     }
   }
@@ -202,7 +206,9 @@ class CalendarEventNotifier extends StateNotifier<List<CalendarEvent>> {
 
     if (_syncService != null && _eventSyncService != null) {
       final previousService = _eventSyncService;
-      _syncService.moveToPreviousEvents(event, previousService);
+      _syncService
+          .moveToPreviousEvents(event, previousService)
+          .catchError((error) {});
     }
 
     final updated = event.copyWith(

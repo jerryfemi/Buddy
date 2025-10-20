@@ -51,7 +51,7 @@ class NoteSyncService {
 
   // Pull Firestore notes → Hive
   Future<void> syncFromFirestore() async {
-    try {
+
       final snapshot = await _notesRef.get();
       final updates = <String, Note>{};
 
@@ -66,28 +66,22 @@ class NoteSyncService {
       }
 
       if (updates.isNotEmpty) {
-        await noteBox.putAll(updates);
+         noteBox.putAll(updates).catchError((e){});
       }
-    } catch (e) {
-      print(' NOTE SYNC FROM FIRESTORE ERROR: $e');
-    }
+
   }
 
   // Two-way sync
   Future<void> syncAll() async {
-    try {
+
       final uploadFutures = noteBox.values.map((note) {
         return syncToFirestore(note).catchError((e) {
-          print('⚠️ Failed to sync note ${note.id}: $e');
         });
       }).toList();
 
-      await Future.wait([
+       Future.wait([
         Future.wait(uploadFutures),
         syncFromFirestore(),
       ]);
-    } catch (e) {
-      print('⚠️ Note syncAll error: $e');
     }
-  }
 }

@@ -48,7 +48,7 @@ class CalendarEventSyncService {
 
   // Pull Firestore events → Hive
   Future<void> syncFromFirestore() async {
-    try {
+
       final snapshot = await _eventsRef.get();
       final updates = <String, CalendarEvent>{};
 
@@ -68,23 +68,14 @@ class CalendarEventSyncService {
       if (updates.isNotEmpty) {
         await eventBox.putAll(updates);
       }
-    } catch (e) {
-      print('⚠️ Event sync from Firestore error: $e');
     }
-  }
 
   // Two-way sync
   Future<void> syncAll() async {
-    try {
-      final uploadFutures = eventBox.values.map((event) {
-        return syncToFirestore(event).catchError((e) {
-          print('⚠️ Failed to sync event ${event.id}: $e');
-        });
-      }).toList();
+    final uploadFutures = eventBox.values.map((event) {
+      return syncToFirestore(event).catchError((e) {});
+    }).toList();
 
-      await Future.wait([Future.wait(uploadFutures), syncFromFirestore()]);
-    } catch (e) {
-      print('⚠️ Event syncAll error: $e');
-    }
+     Future.wait([Future.wait(uploadFutures), syncFromFirestore()]);
   }
 }

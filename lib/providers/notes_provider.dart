@@ -56,7 +56,7 @@ class NotesNotifier extends StateNotifier<List<Note>> {
     this._syncService,
     this._deletedNotesSyncService,
   ) : super([]) {
-loadNotes();
+    loadNotes();
 
     // listen for hive changes
     listener = () {
@@ -91,10 +91,7 @@ loadNotes();
   }
 
   // add new note
-  Future<void> addNote({
-    required String content,
-    required String contentJson,
-  }) async {
+  void addNote({required String content, required String contentJson}) {
     final newNote = Note(
       id: const Uuid().v4(),
       content: content,
@@ -109,17 +106,17 @@ loadNotes();
 
     // sync to fire store
     if (_syncService != null) {
-      await _syncService.syncToFirestore(newNote);
+      _syncService.syncToFirestore(newNote).catchError((error) {});
     }
   }
 
   // update existing note
-  Future<void> updateNote({
+  void updateNote({
     required String id,
     String? title,
     String? content,
     String? contentJson,
-  }) async {
+  }) {
     final noteIndex = state.indexWhere((n) => n.id == id);
     if (noteIndex == -1) return;
     // note not found
@@ -137,12 +134,12 @@ loadNotes();
     state = _box.values.toList();
 
     if (_syncService != null) {
-      await _syncService.syncToFirestore(updatedNote);
+      _syncService.syncToFirestore(updatedNote).catchError((error) {});
     }
   }
 
   // delete notes
-  Future<void> deleteNote(String id, WidgetRef ref) async {
+  void deleteNote(String id, WidgetRef ref) {
     final note = _box.get(id);
     if (note == null) return;
 
@@ -155,7 +152,9 @@ loadNotes();
 
     // move to deleted notes firestore
     if (_syncService != null && _deletedNotesSyncService != null) {
-      await _syncService.moveToDeleted(note, _deletedNotesSyncService);
+      _syncService
+          .moveToDeleted(note, _deletedNotesSyncService)
+          .catchError((error) {});
     }
   }
 }

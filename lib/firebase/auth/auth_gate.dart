@@ -15,7 +15,7 @@ class AuthGate extends ConsumerWidget {
       // user logged in
 
 
-      return const NavigationScreen();
+      return  NavigationScreen();
     } else {
       return LoginOrRegisterScreen();
     }

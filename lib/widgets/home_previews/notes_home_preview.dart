@@ -15,7 +15,7 @@ class NotesHomePreview extends ConsumerWidget {
     final notes = ref.watch(notesProvider);
     return InkWell(
       borderRadius: BorderRadius.circular(15.r),
-      onTap: () => NavigationScreen.switchToTab(context, 1),
+      onTap: () => NavigationScreen.switchToTab( 1),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 9.h),
         decoration: BoxDecoration(

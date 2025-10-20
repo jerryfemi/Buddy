@@ -63,6 +63,7 @@ dependencies:
   cached_network_image: ^3.4.1
   connectivity_plus: ^7.0.0
   home_widget: ^0.8.1
+  receive_intent: ^0.2.7
   # These are build-time tools and should be in dev_dependencies
   # flutter_launcher_icons: ^0.14.4
   # flutter_native_splash: ^2.4.6

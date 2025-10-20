@@ -94,7 +94,7 @@ class TasksNotifier extends StateNotifier<List<Task>> {
 
     // sync to firestore
     if (_syncService != null) {
-      _syncService.syncToFirestore(newTask);
+      _syncService.syncToFirestore(newTask).catchError((error){});
     }
   }
 
@@ -136,13 +136,16 @@ class TasksNotifier extends StateNotifier<List<Task>> {
   // auto deleteCompletedTasks
   void cleanupCompletedTasks() {
     final now = DateTime.now();
-    final toRemove = _box.values.where(
-      (task) =>
-          task.isCompleted &&
-          task.completedAt != null &&
-          now.difference(task.completedAt!).inHours >= 24,
-    );
+    final toRemove = _box.values
+        .where(
+          (task) =>
+              task.isCompleted &&
+              task.completedAt != null &&
+              now.difference(task.completedAt!).inHours >= 24,
+        )
+        .toList();
 
+    if (toRemove.isEmpty) return;
     for (final task in toRemove) {
       final preEventTask = CalendarEvent(
         id: task.id,
@@ -154,12 +157,12 @@ class TasksNotifier extends StateNotifier<List<Task>> {
           .read(previousEventsProvider.notifier)
           .addPreviousEvents(preEventTask);
       _box.delete(task.id);
-      state = _box.values.toList();
 
       if (_syncService != null) {
-        _syncService.deleteFromFirestore(task.id);
+        _syncService.deleteFromFirestore(task.id).catchError((error){});
       }
     }
+    state = _box.values.toList();
   }
 
   // delete task
@@ -185,7 +188,7 @@ class TasksNotifier extends StateNotifier<List<Task>> {
 
       // delete from firestore
       if (_syncService != null) {
-        _syncService.deleteFromFirestore(task.id);
+        _syncService.deleteFromFirestore(task.id).catchError((error){});
       }
     }
   }

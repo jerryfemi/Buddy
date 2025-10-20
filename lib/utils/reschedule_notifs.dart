@@ -15,14 +15,10 @@ class RescheduleNotifs {
     final events = ref.read(eventsProvider);
     final eventRepo = EventsNotificationsRepository();
 
-    await Future.wait(
+     Future.wait(
       events.map((event) async {
-        try {
-          await eventRepo.scheduleEventReminder(event);
-          await eventRepo.schedulePreEventReminders(event);
-        } catch (e) {
-          print('failed to reschedule event ${event.id} : $e');
-        }
+        await eventRepo.scheduleEventReminder(event);
+        await eventRepo.schedulePreEventReminders(event);
       }),
     );
 
@@ -30,13 +26,9 @@ class RescheduleNotifs {
     final tasks = ref.read(tasksProvider);
     final taskRepo = TaskNotificationRepository();
 
-    await Future.wait(
+    Future.wait(
       tasks.map((task) async {
-        try {
-          await taskRepo.scheduleTaskReminder(task);
-        } catch (e) {
-          print('failed to reschedule task ${task.title} : $e');
-        }
+        taskRepo.scheduleTaskReminder(task).catchError((e) {});
       }),
     );
   }

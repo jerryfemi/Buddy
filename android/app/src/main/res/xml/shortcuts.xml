@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="new_note"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_new_note_short"
+        android:shortcutLongLabel="@string/shortcut_new_note_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.example.buddy"
+            android:targetClass="com.example.buddy.MainActivity">
+            <extra
+                android:name="shortcut"
+                android:value="new_note" />
+        </intent>
+
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="new_task"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_new_task_short"
+        android:shortcutLongLabel="@string/shortcut_new_task_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.example.buddy"
+            android:targetClass="com.example.buddy.MainActivity">
+            <extra
+                android:name="shortcut"
+                android:value="new_task" />
+        </intent>
+
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="new_event"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_new_event_short"
+        android:shortcutLongLabel="@string/shortcut_new_event_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.example.buddy"
+            android:targetClass="com.example.buddy.MainActivity">
+            <extra
+                android:name="shortcut"
+                android:value="new_event" />
+        </intent>
+
+    </shortcut>
+
+</shortcuts>

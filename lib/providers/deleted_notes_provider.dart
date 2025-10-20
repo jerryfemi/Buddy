@@ -86,7 +86,7 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
   }
 
   // add deleted note here
-  Future<void> addDeletedNote(Note note) async {
+  void addDeletedNote(Note note)  {
     final deleted = DeletedNote(
       id: note.id,
       content: note.content,
@@ -96,17 +96,17 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
       updatedAt: note.updatedAt,
     );
 
-    await box.put(deleted.id, deleted);
+     box.put(deleted.id, deleted);
 
     state = box.values.toList();
     // sync deleted note to firestore
     if (_syncService != null) {
-      await _syncService.syncToFirestore();
+       _syncService.syncToFirestore().catchError((error){});
     }
   }
 
   //restore deleted note
-  Future<void> restoreNote(String id) async {
+  void restoreNote(String id)  {
     final deleted = box.get(id);
     if (deleted == null) return;
     final originalNote = Note(
@@ -117,25 +117,25 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
       updatedAt: deleted.updatedAt,
     );
     // add back to active notes
-    await _ref.read(notesProvider.notifier).restoreNote(originalNote);
+     _ref.read(notesProvider.notifier).restoreNote(originalNote);
 
     // remove from deleted box
-    await box.delete(id);
+     box.delete(id);
     state = box.values.toList();
     // add back to active notes collection
     if (_syncService != null && _noteSyncService != null) {
-      await _syncService.restoreFromDeleted(deleted, _noteSyncService);
+       _syncService.restoreFromDeleted(deleted, _noteSyncService).catchError((error){});
     }
   }
 
   // permanently delete note from recently deleted
-  Future<void> permanentlyDeleteNote(String id) async {
-    await box.delete(id);
+  void permanentlyDeleteNote(String id)  {
+     box.delete(id);
     state = box.values.toList();
 
     // permanently remove form fireStore
     if (_syncService != null) {
-      await _syncService.deletePermanently(id);
+       _syncService.deletePermanently(id).catchError((error){});
     }
   }
 
@@ -156,7 +156,7 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
       //delete from firestore
       if (_syncService != null) {
         for (final id in toRemove) {
-          await _syncService.deletePermanently(id);
+           _syncService.deletePermanently(id).catchError((error){});
         }
       }
     }

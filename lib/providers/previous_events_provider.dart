@@ -65,7 +65,7 @@ class PreviousEventsNotifier extends StateNotifier<List<PreviousEvents>> {
   }
 
   // addPreviousEvents
-  Future<void> addPreviousEvents(CalendarEvent event) async {
+  void addPreviousEvents(CalendarEvent event) async {
     final prev = PreviousEvents(
       id: event.id,
       title: event.title,
@@ -78,35 +78,36 @@ class PreviousEventsNotifier extends StateNotifier<List<PreviousEvents>> {
 
     // sync to fire store
     if (_syncService != null) {
-      await _syncService.syncToFirestore(prev);
+      _syncService.syncToFirestore(prev).catchError((error) {});
     }
   }
 
   // permanently delete events
-  Future<void> permanentlyDeleteEvents(String id) async {
-    await _box.delete(id);
+  void permanentlyDeleteEvents(String id) {
+    _box.delete(id);
     state = _box.values.toList();
 
     // delete from fire store (permanently)
     if (_syncService != null) {
-      await _syncService.deleteFromFirestorePermanently(id);
+      _syncService.deleteFromFirestorePermanently(id).catchError((error) {});
     }
   }
 
   // clear all
-  Future<void> clearPreviousEvents() async {
+  void clearPreviousEvents() {
     final preEvents = _box.values.toList();
 
     // clear hive box
-    await _box.clear();
+    _box.clear();
     state = [];
 
     // delete all from fireStore
     if (_syncService != null) {
-
-      await Future.wait(
+      Future.wait(
         preEvents.map((prev) async {
-          await _syncService.deleteFromFirestorePermanently(prev.id);
+          await _syncService
+              .deleteFromFirestorePermanently(prev.id)
+              .catchError((e) {});
         }),
       );
     }

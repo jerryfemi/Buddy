@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="app_name">Buddy</string>
+
+<string name="shortcut_new_note_short">New Note</string>
+<string name="shortcut_new_note_long">New note</string>
+
+<string name="shortcut_new_task_short">New Task</string>
+<string name="shortcut_new_task_long"> New task</string>
+
+<string name="shortcut_new_event_short">New Event</string>
+<string name="shortcut_new_event_long">New event</string>
+
+<string name="shortcut_disabled">Unavailable</string>
+</resources>
