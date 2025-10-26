@@ -38,7 +38,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(automaticallyImplyLeading: false,),
       body: Padding(
         padding: EdgeInsets.only(left: 20.w, right: 20.w),
         child: SingleChildScrollView(
@@ -202,7 +202,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 content: e is String
                                     ? e
                                     : 'Sign up failed. Please try again.',
-                                title: Text('Sign Up failed!'),
+                                title: Text('Sign Up failed!'), text: 'ok',
                               ),
                             );
                           }
@@ -241,7 +241,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 context: context,
                                 builder: (context) => MyAlertDialog(
                                   content: e is String ? e : e.toString(),
-                                  title: Text('Sign Up failed!'),
+                                  title: Text('Sign Up failed!'), text: 'ok',
                                 ),
                               );
                             }

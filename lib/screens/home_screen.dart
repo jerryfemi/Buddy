@@ -1,3 +1,4 @@
+import 'package:buddy/firebase/auth/auth_gate.dart';
 import 'package:buddy/providers/auth_provider.dart';
 import 'package:buddy/providers/theme_preference_provider.dart';
 import 'package:buddy/screens/user_profile_screen.dart';
@@ -6,6 +7,7 @@ import 'package:buddy/widgets/custom_drawer.dart';
 import 'package:buddy/widgets/home_previews/events_home_preview.dart';
 import 'package:buddy/widgets/home_previews/notes_home_preview.dart';
 import 'package:buddy/widgets/home_previews/tasks_home_preview.dart';
+import 'package:buddy/widgets/my_alert_dialog.dart';
 import 'package:buddy/widgets/my_sliver_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,18 +29,23 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       drawer: Consumer(
         builder: (context, ref, child) {
+          final user = ref.watch(authNotifierProvider);
           return CustomDrawer(
             listTile: ListTile(
               onTap: () {
-                showSignOutDialog(context, ref);
+                if (user == null) {
+                  showLoginDialog(context);
+                } else {
+                  showSignOutDialog(context, ref);
+                }
               },
               leading: Icon(
-                Icons.exit_to_app,
+                user == null ? Icons.login_rounded : Icons.exit_to_app,
                 color: Theme.of(context).colorScheme.primary,
                 size: context.adaptSize(30.sp, tab: 20.sp),
               ),
               title: Text(
-                'Sign out',
+                user == null ? 'Sign in' : 'Sign out',
                 style: TextStyle(
                   fontWeight: FontWeight.w400,
                   fontSize: context.adaptSize(16.sp, tab: 12.sp),
@@ -91,6 +98,7 @@ class HomeScreen extends StatelessWidget {
 
           context.isTab
               ? SliverToBoxAdapter(
+                  key: const ValueKey('tab_layout'),
                   child: Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: context.adaptPadding(24.w, tab: 19.w),
@@ -164,6 +172,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 )
               : SliverList(
+                  key: const ValueKey('mobile_layout'),
                   delegate: SliverChildListDelegate(
                     previewWidgets.asMap().entries.map((entry) {
                       final index = entry.key;
@@ -261,29 +270,37 @@ class _ThemeToggleButtonState extends ConsumerState<ThemeToggleButton> {
   }
 }
 
+// sign ut dialog
 Future<void> showSignOutDialog(BuildContext context, WidgetRef ref) async {
   return showDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Sign Out'),
-      content: const Text('Are you sure you want to sign out?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(), // Cancel
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-          ),
-          onPressed: () async {
-            Navigator.of(context).pop();
-            await ref.read(authNotifierProvider.notifier).signOut();
-          },
-          child: const Text('Sign Out'),
-        ),
-      ],
+    builder: (context) => MyAlertDialog(
+      content: 'Are you sure you want to sign out',
+      title: Text('Sign out'),buttonText: 'Sign Out',
+      text: 'cancel',
+      onPressed: () async {
+        Navigator.of(context).pop();
+        await ref.read(authNotifierProvider.notifier).signOut();
+      },
+    ),
+  );
+}
+
+
+// login dialog
+Future<void> showLoginDialog(BuildContext context) async {
+  return showDialog(
+    context: context,
+    builder: (context) => MyAlertDialog(
+      content: 'Sign in to keep your Buddy data safe and in sync',
+      title: Text('Sign in'),buttonText: 'Sign in',
+      text: 'cancel',
+      onPressed: () {
+        Navigator.pop(context);
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (context) => AuthGate()));
+      },
     ),
   );
 }

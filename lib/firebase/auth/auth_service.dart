@@ -114,13 +114,16 @@ class AuthService {
       case 'user-not-found':
         return 'No account found for this email.';
       case 'wrong-password':
-        return 'Incorrect password.';
+      case 'invalid-credential':  // ADD THIS LINE
+        return 'Incorrect password or email.';
       case 'email-already-in-use':
         return 'That email is already registered.';
       case 'weak-password':
         return 'Password is too weak.';
       case 'invalid-email':
         return 'Invalid email address.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
       default:
         return e.message ?? 'Authentication failed. Please try again.';
     }

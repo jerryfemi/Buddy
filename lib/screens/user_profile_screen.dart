@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:buddy/firebase/auth/auth_gate.dart';
 import 'package:buddy/utils/responsive_utils.dart';
 import 'package:buddy/widgets/my_sliver_app_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -69,7 +70,6 @@ class _SettingsScreenState extends ConsumerState<ProfileScreen> {
       });
       // refresh the UI
       setState(() => _imageFile = null);
-
 
       //  delete old image only after success
       if (oldPhotoUrl != null &&
@@ -171,29 +171,37 @@ class _NoProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.person_off,
-            size: 64.sp,
-            color: Theme.of(context).colorScheme.tertiary,
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            "No profile found",
-            style: TextStyle(
-              fontSize: context.adaptSize(18.sp, tab: 16.sp),
+    return Scaffold(appBar: AppBar(),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.person_off,
+              size: 64.sp,
               color: Theme.of(context).colorScheme.tertiary,
             ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            "Please try signing out and signing back in",
-            style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
-          ),
-        ],
+            SizedBox(height: 16.h),
+            Text(
+              "No profile found",
+              style: TextStyle(
+                fontSize: context.adaptSize(18.sp, tab: 16.sp),
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              "Please sign in ",
+              style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => AuthGate())),
+              child: Text('Sign in'),
+            ),
+          ],
+        ),
       ),
     );
   }

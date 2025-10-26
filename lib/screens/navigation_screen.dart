@@ -18,7 +18,7 @@ final GlobalKey<NavigationScreenState> navigationScreenKey =
     GlobalKey<NavigationScreenState>();
 
 class NavigationScreen extends ConsumerStatefulWidget {
-  NavigationScreen() : super(key: navigationScreenKey);
+ const  NavigationScreen({super.key});
 
   @override
   ConsumerState<NavigationScreen> createState() => NavigationScreenState();
@@ -72,7 +72,7 @@ class NavigationScreenState extends ConsumerState<NavigationScreen> {
     if (syncManager != null) {
       syncManager.listenForConnectivityAndSync();
 
-      Future.delayed(const Duration(milliseconds: 500), () async {
+      Future.delayed(const Duration(milliseconds: 300), () async {
         // Run sync in background
         syncManager.syncAll().catchError((error) {});
 

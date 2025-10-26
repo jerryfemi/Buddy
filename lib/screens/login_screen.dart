@@ -32,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(automaticallyImplyLeading: false),
       body: Padding(
         padding: EdgeInsets.only(left: 20.w, right: 20.w),
         child: SingleChildScrollView(
@@ -155,10 +155,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             showDialog(
                               context: context,
                               builder: (context) => MyAlertDialog(
-                                content: e is String
-                                    ? e
-                                    : e.toString(),
+                                content: e is String ? e : e.toString(),
                                 title: Text('Login failed!'),
+                                text: 'ok',
                               ),
                             );
                           }
@@ -216,6 +215,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 builder: (context) => MyAlertDialog(
                                   content: e is String ? e : e.toString(),
                                   title: Text('Sign In failed!'),
+                                  text: 'ok',
                                 ),
                               );
                             }

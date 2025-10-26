@@ -5,6 +5,7 @@ import 'package:buddy/models/previous_events_model.dart';
 import 'package:buddy/models/task_model.dart';
 import 'package:buddy/models/theme_model.dart';
 import 'package:buddy/providers/theme_preference_provider.dart';
+import 'package:buddy/screens/navigation_screen.dart';
 import 'package:buddy/services/notification_services.dart';
 import 'package:buddy/themes/dark_theme.dart';
 import 'package:buddy/themes/light_mode.dart';
@@ -88,7 +89,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       builder: (context, child) {
         return MaterialApp(
           navigatorKey: navigatorKey,
-          home: AuthGate(),
+          home: NavigationScreen(),
           debugShowCheckedModeBanner: false,
           title: 'Buddy',
           themeMode: theme,

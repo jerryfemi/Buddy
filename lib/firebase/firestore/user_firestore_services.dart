@@ -25,14 +25,14 @@ class UserFirestoreService {
     }
   }
 
-  // 🔹 Listen to live updates of a user profile
+  //  Listen to live updates of a user profile
   Stream<Map<String, dynamic>?> userProfileStream(String uid) {
     return _firestore.collection(_usersCollection).doc(uid).snapshots().map(
           (snapshot) => snapshot.data(),
     );
   }
 
-  // 🔹 Update profile fields
+  //  Update profile fields
   Future<void> updateProfile(String uid, Map<String, dynamic> data) async {
     await _firestore.collection(_usersCollection).doc(uid).update(data);
   }

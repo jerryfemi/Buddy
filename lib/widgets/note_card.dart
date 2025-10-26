@@ -66,7 +66,7 @@ class NoteTile extends ConsumerWidget {
             subtitle: Row(
               children: [
                 Text(
-                  formatDateTime(displayDate),
+                  '${formatDateTime(displayDate)}:',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.tertiary,
                     fontWeight: FontWeight.w500,
