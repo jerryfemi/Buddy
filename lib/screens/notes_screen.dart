@@ -59,60 +59,11 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
       body: CustomScrollView(
         physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // notes app bar
-          MySliverAppBar(
-            leading: null,
-            actions: [
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'deleted') {
-                    AppNavigator.push(
-                      context,
-                      RecentlyDeletedNotesScreen(),
-                      type: TransitionType.cupertino,
-                    );
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'deleted',
-                    child: Text(
-                      'Recently Deleted',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            title: 'Notes',
-          ),
+          // app bar
+          _appBar(context),
           notes.isEmpty
-              ? SliverToBoxAdapter(
-                  child: Center(
-                    child: Column(
-                      children: [
-                        SizedBox(height: 250.h),
-                        Text(
-                          'Create your personal notes.',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.tertiary,
-                            fontSize: 13.sp,
-                          ),
-                        ),
-                        Text(
-                          'Tap the plus button to get started.',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.tertiary,
-                            fontSize: 13.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
+              ? // empty state
+                _emptyState(context)
               :
                 // Search bar
                 SliverPersistentHeader(
@@ -129,11 +80,7 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
             delegate: SliverChildBuilderDelegate((context, index) {
               final note = filteredNotes[index];
               return Padding(
-                padding: EdgeInsets.only(
-                  left: 12.w,
-                  right: 12.w,
-                  bottom: 4.h,
-                ),
+                padding: EdgeInsets.only(left: 12.w, right: 12.w, bottom: 4.h),
                 child: NoteTile(note: note),
               );
             }, childCount: filteredNotes.length),
@@ -142,4 +89,60 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
       ),
     );
   }
+}
+
+// EXTRACTED WIDGETS
+Widget _appBar(BuildContext context) {
+  return MySliverAppBar(
+    leading: null,
+    actions: [
+      PopupMenuButton<String>(
+        onSelected: (value) {
+          if (value == 'deleted') {
+            AppNavigator.push(
+              context,
+              RecentlyDeletedNotesScreen(),
+              type: TransitionType.cupertino,
+            );
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'deleted',
+            child: Text(
+              'Recently Deleted',
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    ],
+    title: 'Notes',
+  );
+}
+
+Widget _emptyState(BuildContext context) {
+  return SliverToBoxAdapter(
+    child: Center(
+      child: Column(
+        children: [
+          SizedBox(height: 250.h),
+          Text(
+            'Create your personal notes.',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.tertiary,
+              fontSize: 13.sp,
+            ),
+          ),
+          Text(
+            'Tap the plus button to get started.',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.tertiary,
+              fontSize: 13.sp,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

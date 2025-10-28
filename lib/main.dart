@@ -1,4 +1,3 @@
-import 'package:buddy/firebase/auth/auth_gate.dart';
 import 'package:buddy/models/calendar_event_model.dart';
 import 'package:buddy/models/deleted_notes_model.dart';
 import 'package:buddy/models/previous_events_model.dart';

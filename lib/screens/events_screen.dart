@@ -12,27 +12,10 @@ class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
 
   @override
-  State<EventsScreen> createState() => _RemindersScreenState();
+  State<EventsScreen> createState() => _EventsScreenState();
 }
 
-class _RemindersScreenState extends State<EventsScreen> {
-  void openAddEventsDialog() {
-    showModalBottomSheet(
-      isDismissible: false,
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: context.adaptSize(0.6, tab: 0.5),
-        minChildSize: 0.37,
-        maxChildSize: 0.8,
-        builder: (context, scrollController) {
-          return AddEventSheet(scrollController: scrollController);
-        },
-      ),
-    );
-  }
-
+class _EventsScreenState extends State<EventsScreen> {
   DateTime? _selectedDay;
   DateTime _focusedDay = DateTime.now();
   final ScrollController _scrollController = ScrollController();
@@ -42,7 +25,7 @@ class _RemindersScreenState extends State<EventsScreen> {
     return Scaffold(
       extendBody: true,
       floatingActionButton: FloatingActionButton(
-        onPressed: openAddEventsDialog,
+        onPressed: () => openAddEventsDialog(context),
         shape: CircleBorder(),
         child: Icon(Icons.add, color: Colors.white),
       ),
@@ -93,12 +76,12 @@ class _RemindersScreenState extends State<EventsScreen> {
         title2: 'Year',
         leading1: Icon(
           Icons.calendar_view_month_outlined,
-          size: context.adaptSize(26.sp,tab: 20.sp),
+          size: context.adaptSize(26.sp, tab: 20.sp),
           color: Theme.of(context).colorScheme.primary,
         ),
         leading2: Icon(
           Icons.calendar_month,
-          size: context.adaptSize(26.sp,tab: 20.sp),
+          size: context.adaptSize(26.sp, tab: 20.sp),
           color: Theme.of(context).colorScheme.primary,
         ),
       ),
@@ -167,4 +150,21 @@ class _RemindersScreenState extends State<EventsScreen> {
       ),
     );
   }
+}
+
+void openAddEventsDialog(BuildContext context) {
+  showModalBottomSheet(
+    isDismissible: false,
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: context.adaptSize(0.6, tab: 0.5),
+      minChildSize: 0.37,
+      maxChildSize: 0.8,
+      builder: (context, scrollController) {
+        return AddEventSheet(scrollController: scrollController);
+      },
+    ),
+  );
 }
