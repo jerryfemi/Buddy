@@ -18,24 +18,29 @@ final GlobalKey<NavigationScreenState> navigationScreenKey =
     GlobalKey<NavigationScreenState>();
 
 class NavigationScreen extends ConsumerStatefulWidget {
- const  NavigationScreen({super.key});
+  const NavigationScreen({super.key});
 
   @override
   ConsumerState<NavigationScreen> createState() => NavigationScreenState();
 
   //  helper for HomeScreen to switch tabs
   static void switchToTab(int index) {
-    navigationScreenKey.currentState?.switchTab(index);
+    final state = navigationScreenKey.currentState;
+    if (state != null && state.mounted) {
+      state.switchTab(index);
+    }
   }
 
   static Future<void> openShortcut(
     int index,
     Future<void> Function() afterSwitch,
   ) async {
-    navigationScreenKey.currentState?.switchTab(index);
-
-    await Future.delayed(const Duration(milliseconds: 100));
-    await afterSwitch();
+    final state = navigationScreenKey.currentState;
+    if (state != null && state.mounted) {
+      state.switchTab(index);
+      await Future.delayed(const Duration(milliseconds: 100));
+      await afterSwitch();
+    }
   }
 }
 

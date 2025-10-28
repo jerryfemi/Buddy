@@ -13,7 +13,7 @@ class AuthGate extends ConsumerWidget {
 
     if (authState != null) {
       // user logged in
-      return NavigationScreen();
+      return  NavigationScreen();
     } else {
       return LoginOrRegisterScreen();
     }

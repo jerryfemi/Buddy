@@ -57,7 +57,6 @@ void main() async {
   await Hive.openBox<PreviousEvents>('previousEventsBox');
   await Hive.openBox<ThemePreference>('themeBox');
 
-
   runApp(
     ProviderScope(
       child: DevicePreview(
@@ -77,7 +76,6 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -89,7 +87,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       builder: (context, child) {
         return MaterialApp(
           navigatorKey: navigatorKey,
-          home: NavigationScreen(),
+          home: NavigationScreen(key: navigationScreenKey),
           debugShowCheckedModeBanner: false,
           title: 'Buddy',
           themeMode: theme,
