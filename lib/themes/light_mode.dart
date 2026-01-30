@@ -8,7 +8,8 @@ ThemeData lightMode = ThemeData(
     secondary: Color.fromARGB(20, 116, 116, 128),
     tertiary: Colors.grey.shade600,
     tertiaryContainer: Colors.grey.shade800,
-    inversePrimary: Colors.grey.shade900,
+    inversePrimary:Colors.white60
+    
   ),
   textTheme: Typography.blackCupertino,
 );

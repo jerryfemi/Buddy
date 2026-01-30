@@ -18,7 +18,7 @@ class NoteFirestore {
     this.contentJson,
   });
 
-  // From Hive
+  // From Hive to firestore
   factory NoteFirestore.fromHive(Note note) {
     return NoteFirestore(
       id: note.id,
@@ -29,7 +29,7 @@ class NoteFirestore {
     );
   }
 
-  // To Hive
+  // form firestore To Hive
   Note toHive() {
     return Note(
       id: id,
