@@ -1,11 +1,12 @@
 import 'package:buddy/firebase/firestore/user_firestore_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final UserFirestoreService _userFirestoreService = UserFirestoreService();
 
   // Get current user
@@ -17,12 +18,20 @@ class AuthService {
   // Google Sign In
   Future<User?> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null; // user cancelled
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+      final GoogleSignInClientAuthorization? authorization = await googleUser
+          .authorizationClient
+          .authorizationForScopes(['email', 'profile']);
 
-      final googleAuth = await googleUser.authentication;
+      final googleAuth = googleUser.authentication;
+      final accessToken = authorization?.accessToken;
+
+      if (accessToken == null && googleAuth.idToken == null) {
+        throw 'Google sign-in failed. No OAuth token returned.';
+      }
+
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
+        accessToken: accessToken,
         idToken: googleAuth.idToken,
       );
 
@@ -33,9 +42,18 @@ class AuthService {
       }
       return user;
     } on PlatformException catch (e) {
+      debugPrint(
+        'AuthService Google PlatformException: ${e.code} ${e.message}',
+      );
       throw (_handlePlatformError(e));
     } on FirebaseAuthException catch (e) {
+      debugPrint(
+        'AuthService Google FirebaseAuthException: ${e.code} ${e.message}',
+      );
       throw (_handleFirebaseAuthError(e));
+    } catch (e) {
+      debugPrint('AuthService Google unknown error: $e');
+      throw 'Google sign-in failed. Please try again.';
     }
   }
 
@@ -55,8 +73,14 @@ class AuthService {
       }
       return user;
     } on PlatformException catch (e) {
+      debugPrint(
+        'AuthService Email SignIn PlatformException: ${e.code} ${e.message}',
+      );
       throw (_handlePlatformError(e));
     } on FirebaseAuthException catch (e) {
+      debugPrint(
+        'AuthService Email SignIn FirebaseAuthException: ${e.code} ${e.message}',
+      );
       throw (_handleFirebaseAuthError(e));
     }
   }
@@ -77,8 +101,14 @@ class AuthService {
       }
       return user;
     } on PlatformException catch (e) {
+      debugPrint(
+        'AuthService Email SignUp PlatformException: ${e.code} ${e.message}',
+      );
       throw (_handlePlatformError(e));
     } on FirebaseAuthException catch (e) {
+      debugPrint(
+        'AuthService Email SignUp FirebaseAuthException: ${e.code} ${e.message}',
+      );
       throw (_handleFirebaseAuthError(e));
     }
   }
@@ -88,8 +118,14 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email.trim());
     } on PlatformException catch (e) {
+      debugPrint(
+        'AuthService ResetPassword PlatformException: ${e.code} ${e.message}',
+      );
       throw (_handlePlatformError(e));
     } on FirebaseAuthException catch (e) {
+      debugPrint(
+        'AuthService ResetPassword FirebaseAuthException: ${e.code} ${e.message}',
+      );
       throw (_handleFirebaseAuthError(e));
     }
   }
@@ -111,10 +147,21 @@ class AuthService {
 
   String _handleFirebaseAuthError(FirebaseAuthException e) {
     switch (e.code) {
+      case 'operation-not-allowed':
+        return 'This sign-in method is not enabled in Firebase Authentication.';
+      case 'unauthorized-domain':
+        return 'This domain is not authorized in Firebase Authentication settings.';
+      case 'invalid-api-key':
+      case 'api-key-not-valid-please-pass-a-valid-api-key':
+        return 'Firebase API key is invalid or restricted for this platform/domain.';
+      case 'app-not-authorized':
+        return 'This app/domain is not authorized for your Firebase project.';
+      case 'network-request-failed':
+        return 'Network error. Check your connection and try again.';
       case 'user-not-found':
         return 'No account found for this email.';
       case 'wrong-password':
-      case 'invalid-credential':  // ADD THIS LINE
+      case 'invalid-credential':
         return 'Incorrect password or email.';
       case 'email-already-in-use':
         return 'That email is already registered.';

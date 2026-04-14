@@ -5,11 +5,17 @@ import 'package:hive/hive.dart';
 
 import '../../models/note_model.dart';
 import '../firestore/notes_firestore.dart';
+import 'sync_checkpoint_service.dart';
+import 'sync_operation_runner.dart';
 
 class NoteSyncService {
+  // Conflict policy: last-write-wins based on Firestore server-side updatedAt.
+  static const String conflictPolicy = 'last_write_wins_server_updatedAt';
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String userId;
   final Box<Note> noteBox;
+  final SyncCheckpointService _checkpointService = SyncCheckpointService();
 
   NoteSyncService({required this.userId, required this.noteBox});
 
@@ -20,14 +26,25 @@ class NoteSyncService {
   Future<void> syncToFirestore(Note note) async {
     final docRef = _notesRef.doc(note.id);
     final noteFirestore = NoteFirestore.fromHive(note);
-
-    await docRef.set(noteFirestore.toMap(), SetOptions(merge: true));
+    final data = noteFirestore.toMap();
+    data['updatedAt'] = FieldValue.serverTimestamp();
+    await SyncOperationRunner.runWithRetry<void>(
+      collection: 'notes',
+      docId: note.id,
+      operation: 'upsert',
+      action: () => docRef.set(data, SetOptions(merge: true)),
+    );
   }
 
   // Delete note from Firestore
   Future<void> deleteFromFirestore(String noteId) async {
     final docRef = _notesRef.doc(noteId);
-    await docRef.delete();
+    await SyncOperationRunner.runWithRetry<void>(
+      collection: 'notes',
+      docId: noteId,
+      operation: 'delete',
+      action: docRef.delete,
+    );
   }
 
   // move notes to deleted notes
@@ -35,7 +52,12 @@ class NoteSyncService {
     Note note,
     DeletedNotesSyncService deletedService,
   ) async {
-    await _notesRef.doc(note.id).delete();
+    await SyncOperationRunner.runWithRetry<void>(
+      collection: 'notes',
+      docId: note.id,
+      operation: 'move_to_deleted_delete_source',
+      action: () => _notesRef.doc(note.id).delete(),
+    );
 
     final deletedNote = DeletedNote(
       id: note.id,
@@ -51,37 +73,45 @@ class NoteSyncService {
 
   // Pull Firestore notes → Hive
   Future<void> syncFromFirestore() async {
+    final lastPullAt = await _checkpointService.getLastPullAt(
+      userId: userId,
+      collection: 'notes',
+    );
 
-      final snapshot = await _notesRef.get();
-      final updates = <String, Note>{};
+    Query<Map<String, dynamic>> query = _notesRef;
+    if (lastPullAt != null) {
+      query = query.where(
+        'updatedAt',
+        isGreaterThan: Timestamp.fromDate(lastPullAt),
+      );
+    }
 
-      for (var doc in snapshot.docs) {
-        final noteFirestore = NoteFirestore.fromMap(doc.id, doc.data());
-        final existingNote = noteBox.get(noteFirestore.id);
+    final snapshot = await query.get();
+    final updates = <String, Note>{};
 
-        if (existingNote == null ||
-            noteFirestore.updatedAt.isAfter(existingNote.updatedAt)) {
-          noteBox.put(noteFirestore.id, noteFirestore.toHive());
-        }
+    for (final doc in snapshot.docs) {
+      final noteFirestore = NoteFirestore.fromMap(doc.id, doc.data());
+      final existingNote = noteBox.get(noteFirestore.id);
+
+      if (existingNote == null ||
+          noteFirestore.updatedAt.isAfter(existingNote.updatedAt)) {
+        updates[noteFirestore.id] = noteFirestore.toHive();
       }
+    }
 
-      if (updates.isNotEmpty) {
-         noteBox.putAll(updates).catchError((e){});
-      }
+    if (updates.isNotEmpty) {
+      await noteBox.putAll(updates);
+    }
 
+    await _checkpointService.markPulledNow(userId: userId, collection: 'notes');
   }
 
   // Two-way sync
   Future<void> syncAll() async {
-
-      final uploadFutures = noteBox.values.map((note) {
-        return syncToFirestore(note).catchError((e) {
-        });
-      }).toList();
-
-       Future.wait([
-        Future.wait(uploadFutures),
-        syncFromFirestore(),
-      ]);
+    for (final note in noteBox.values) {
+      await syncToFirestore(note);
     }
+
+    await syncFromFirestore();
+  }
 }

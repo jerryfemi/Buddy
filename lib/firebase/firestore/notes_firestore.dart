@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/note_model.dart';
 
-
 class NoteFirestore {
   final String id;
   final String content;
@@ -52,12 +51,24 @@ class NoteFirestore {
 
   // From Firestore
   factory NoteFirestore.fromMap(String id, Map<String, dynamic> map) {
+    final createdAt = _readDate(map['createdAt'], fallback: DateTime.now());
+    final updatedAt = _readDate(map['updatedAt'], fallback: createdAt);
+
     return NoteFirestore(
       id: id,
       content: map['content'] ?? '',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
-      updatedAt: (map['updatedAt'] as Timestamp).toDate(),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
       contentJson: map['contentJson'],
     );
+  }
+
+  static DateTime _readDate(dynamic value, {required DateTime fallback}) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    return fallback;
   }
 }

@@ -55,13 +55,26 @@ class DeletedNoteFirestore {
 
   // From Firestore Map
   factory DeletedNoteFirestore.fromMap(String id, Map<String, dynamic> map) {
+    final createdAt = _readDate(map['createdAt'], fallback: DateTime.now());
+    final updatedAt = _readDate(map['updatedAt'], fallback: createdAt);
+    final deletedAt = _readDate(map['deletedAt'], fallback: updatedAt);
+
     return DeletedNoteFirestore(
       id: id,
       content: map['content'] ?? '',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
-      updatedAt: (map['updatedAt'] as Timestamp).toDate(),
-      deletedAt: (map['deletedAt'] as Timestamp).toDate(),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      deletedAt: deletedAt,
       contentJson: map['contentJson'],
     );
+  }
+
+  static DateTime _readDate(dynamic value, {required DateTime fallback}) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    return fallback;
   }
 }

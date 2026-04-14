@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/calendar_event_model.dart';
+
 class CalendarEventFirestore {
   final String id;
   final String title;
@@ -10,6 +11,7 @@ class CalendarEventFirestore {
   final List<int> reminders;
   final DateTime endDateTime;
   final String repeatRule;
+  final DateTime? updatedAt;
 
   CalendarEventFirestore({
     required this.id,
@@ -20,6 +22,7 @@ class CalendarEventFirestore {
     required this.reminders,
     required this.endDateTime,
     this.repeatRule = 'never',
+    this.updatedAt,
   });
 
   // From Hive
@@ -33,6 +36,7 @@ class CalendarEventFirestore {
       reminders: event.reminders,
       endDateTime: event.endDateTime,
       repeatRule: event.repeatRule,
+      updatedAt: DateTime.now(),
     );
   }
 
@@ -60,20 +64,46 @@ class CalendarEventFirestore {
       'reminders': reminders,
       'endDateTime': endDateTime,
       'repeatRule': repeatRule,
+      'updatedAt': updatedAt,
     };
   }
 
   // From Firestore
   factory CalendarEventFirestore.fromMap(String id, Map<String, dynamic> map) {
+    final startDateTime = _readDate(
+      map['startDateTime'],
+      fallback: DateTime.now(),
+    );
+    final endDateTime = _readDate(map['endDateTime'], fallback: startDateTime);
+
     return CalendarEventFirestore(
       id: id,
       title: map['title'] ?? '',
-      startDateTime: (map['startDateTime'] as Timestamp).toDate(),
+      startDateTime: startDateTime,
       isAllDay: map['isAllDay'] ?? false,
       description: map['description'],
       reminders: List<int>.from(map['reminders'] ?? []),
-      endDateTime: (map['endDateTime'] as Timestamp).toDate(),
-      repeatRule: map['repeatRule'],
+      endDateTime: endDateTime,
+      repeatRule: map['repeatRule'] ?? 'never',
+      updatedAt: _readNullableDate(map['updatedAt']),
     );
+  }
+
+  static DateTime _readDate(dynamic value, {required DateTime fallback}) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    return fallback;
+  }
+
+  static DateTime? _readNullableDate(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    return null;
   }
 }

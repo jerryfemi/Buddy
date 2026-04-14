@@ -10,6 +10,7 @@ class TaskFirestore {
   final DateTime? reminderTime;
   final bool hasReminder;
   final DateTime? completedAt;
+  final DateTime? updatedAt;
 
   TaskFirestore({
     required this.id,
@@ -19,6 +20,7 @@ class TaskFirestore {
     this.reminderTime,
     required this.hasReminder,
     this.completedAt,
+    this.updatedAt,
   });
 
   // From Hive
@@ -31,6 +33,7 @@ class TaskFirestore {
       reminderTime: task.reminderTime,
       hasReminder: task.hasReminder,
       completedAt: task.completedAt,
+      updatedAt: DateTime.now(),
     );
   }
 
@@ -40,7 +43,7 @@ class TaskFirestore {
       id: id,
       title: title,
       priority: Priority.values.firstWhere(
-            (p) => p.name == priority,
+        (p) => p.name == priority,
         orElse: () => Priority.low,
       ),
       isCompleted: isCompleted,
@@ -59,23 +62,34 @@ class TaskFirestore {
       'reminderTime': reminderTime,
       'hasReminder': hasReminder,
       'completedAt': completedAt,
+      'updatedAt': updatedAt,
     };
   }
 
   // From Firestore
   factory TaskFirestore.fromMap(String id, Map<String, dynamic> map) {
+    final reminderTime = _readNullableDate(map['reminderTime']);
+    final completedAt = _readNullableDate(map['completedAt']);
+    final updatedAt = _readNullableDate(map['updatedAt']);
+
     return TaskFirestore(
       id: id,
       title: map['title'] ?? '',
       priority: map['priority'] ?? 'low',
       isCompleted: map['isCompleted'] ?? false,
-      reminderTime: map['reminderTime'] != null
-          ? (map['reminderTime'] as Timestamp).toDate()
-          : null,
+      reminderTime: reminderTime,
       hasReminder: map['hasReminder'] ?? false,
-      completedAt: map['completedAt'] != null
-          ? (map['completedAt'] as Timestamp).toDate()
-          : null,
+      completedAt: completedAt,
+      updatedAt: updatedAt,
     );
+  }
+
+  static DateTime? _readNullableDate(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    return null;
   }
 }
