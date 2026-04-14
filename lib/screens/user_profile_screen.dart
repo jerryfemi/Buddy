@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:buddy/firebase/auth/auth_gate.dart';
 import 'package:buddy/utils/responsive_utils.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:buddy/widgets/my_sliver_app_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../firebase/service/storage_service.dart';
@@ -171,7 +172,8 @@ class _NoProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(),
+    return Scaffold(
+      appBar: AppBar(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -195,9 +197,7 @@ class _NoProfileView extends StatelessWidget {
               style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
             ),
             TextButton(
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (context) => AuthGate())),
+              onPressed: () => context.go(AppRoutes.auth),
               child: Text('Sign in'),
             ),
           ],

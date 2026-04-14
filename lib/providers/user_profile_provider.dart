@@ -3,15 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../firebase/firestore/user_firestore_services.dart';
+import 'auth_provider.dart';
 
 // Provider for UserFirestoreService
 final userFirestoreProvider = Provider<UserFirestoreService>((ref) {
   return UserFirestoreService();
-});
-
-// Provider for current user that reacts to auth state changes
-final currentUserProvider = StreamProvider<User?>((ref) {
-  return FirebaseAuth.instance.authStateChanges();
 });
 
 //  Notifier
@@ -27,7 +23,7 @@ class UserProfileNotifier
   void _init() {
     // Listen continuously to auth changes
     ref.listen<AsyncValue<User?>>(
-      currentUserProvider,
+      authStateProvider,
           (previous, next) {
         next.whenData((user) {
           _subscription?.cancel();

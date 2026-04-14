@@ -1,9 +1,12 @@
-import 'package:buddy/screens/year_view_screen.dart';
+import 'dart:async';
+
 import 'package:buddy/utils/responsive_utils.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:buddy/widgets/custom_drawer.dart';
 import 'package:buddy/widgets/event_sliver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/add_events_sheet.dart';
 import '../widgets/calendar_sliver_persistent_header.dart';
@@ -19,6 +22,14 @@ class _EventsScreenState extends State<EventsScreen> {
   DateTime? _selectedDay;
   DateTime _focusedDay = DateTime.now();
   final ScrollController _scrollController = ScrollController();
+  Timer? _scrollTimer;
+
+  @override
+  void dispose() {
+    _scrollTimer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,13 +37,13 @@ class _EventsScreenState extends State<EventsScreen> {
       extendBody: true,
       floatingActionButton: FloatingActionButton(
         onPressed: () => openAddEventsDialog(context),
-        shape: CircleBorder(),
-        child: Icon(Icons.add, color: Colors.white),
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       drawer: CustomDrawer(
         onTap1: () async {
           // open date picker
-          Navigator.pop(context);
+          context.pop();
           final picked = await showDatePicker(
             context: context,
             firstDate: DateTime(2000),
@@ -48,16 +59,10 @@ class _EventsScreenState extends State<EventsScreen> {
         },
         onTap2: () async {
           // open year view screen
-          Navigator.pop(context);
-          final pickedMonth = await Navigator.of(context, rootNavigator: true)
-              .push<DateTime>(
-                MaterialPageRoute(
-                  builder: (context) => YearViewScreen(
-                    onMonthSelected: (date) {},
-                    year: _focusedDay.year,
-                  ),
-                ),
-              );
+          context.pop();
+          final pickedMonth = await context.push<DateTime>(
+            AppRoutes.yearViewFor(_focusedDay.year),
+          );
           if (pickedMonth != null) {
             setState(() {
               _focusedDay = pickedMonth;
@@ -106,7 +111,8 @@ class _EventsScreenState extends State<EventsScreen> {
                     });
 
                     // when a date is tapped, scroll down a bit so events show
-                    Future.delayed(Duration(milliseconds: 100), () {
+                    _scrollTimer?.cancel();
+                    _scrollTimer = Timer(const Duration(milliseconds: 100), () {
                       _scrollController.animateTo(
                         170.h,
                         duration: const Duration(milliseconds: 200),
@@ -153,15 +159,25 @@ class _EventsScreenState extends State<EventsScreen> {
 }
 
 void openAddEventsDialog(BuildContext context) {
-  showModalBottomSheet(
+  final collapsedSnap = context.adaptSize(0.6, tab: 0.5);
+  const expandedSnap = 0.8;
+
+  showModalBottomSheet<void>(
     isDismissible: false,
     context: context,
     isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    sheetAnimationStyle: const AnimationStyle(
+      duration: Duration(milliseconds: 190),
+      reverseDuration: Duration(milliseconds: 170),
+    ),
     builder: (context) => DraggableScrollableSheet(
       expand: false,
-      initialChildSize: context.adaptSize(0.6, tab: 0.5),
-      minChildSize: 0.37,
-      maxChildSize: 0.8,
+      initialChildSize: collapsedSnap,
+      minChildSize: collapsedSnap,
+      maxChildSize: expandedSnap,
+      snap: true,
+      snapSizes: [collapsedSnap, expandedSnap],
       builder: (context, scrollController) {
         return AddEventSheet(scrollController: scrollController);
       },

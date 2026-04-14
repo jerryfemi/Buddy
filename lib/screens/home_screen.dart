@@ -1,7 +1,7 @@
-import 'package:buddy/firebase/auth/auth_gate.dart';
 import 'package:buddy/providers/auth_provider.dart';
 import 'package:buddy/screens/user_profile_screen.dart';
 import 'package:buddy/utils/responsive_utils.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:buddy/widgets/custom_drawer.dart';
 import 'package:buddy/widgets/home_previews/events_home_preview.dart';
 import 'package:buddy/widgets/home_previews/notes_home_preview.dart';
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/theme_toggle_button.dart';
 
@@ -45,7 +46,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-
 
 // EXTRACTED WIDGETS
 Widget _drawer(BuildContext context) {
@@ -199,7 +199,6 @@ Widget _mobileLayout(BuildContext context) {
   );
 }
 
-
 // sign ut dialog
 Future<void> showSignOutDialog(BuildContext context, WidgetRef ref) async {
   return showDialog(
@@ -221,16 +220,14 @@ Future<void> showSignOutDialog(BuildContext context, WidgetRef ref) async {
 Future<void> showLoginDialog(BuildContext context) async {
   return showDialog(
     context: context,
-    builder: (context) => MyAlertDialog(
+    builder: (dialogContext) => MyAlertDialog(
       content: 'Sign in to keep your Buddy data safe and in sync',
       title: Text('Sign in'),
       buttonText: 'Sign in',
       text: 'cancel',
       onPressed: () {
-        Navigator.pop(context);
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (context) => AuthGate()));
+        Navigator.of(dialogContext).pop();
+        context.go(AppRoutes.auth);
       },
     ),
   );

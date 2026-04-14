@@ -18,6 +18,19 @@ class AuthService {
   // Google Sign In
   Future<User?> signInWithGoogle() async {
     try {
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+
+        final userCredential = await _auth.signInWithPopup(provider);
+        final user = userCredential.user;
+        if (user != null) {
+          await _userFirestoreService.createUserProfileIfNotExists(user);
+        }
+        return user;
+      }
+
       final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
       final GoogleSignInClientAuthorization? authorization = await googleUser
           .authorizationClient
@@ -146,6 +159,8 @@ class AuthService {
   }
 
   String _handleFirebaseAuthError(FirebaseAuthException e) {
+    final message = e.message?.toLowerCase() ?? '';
+
     switch (e.code) {
       case 'operation-not-allowed':
         return 'This sign-in method is not enabled in Firebase Authentication.';
@@ -156,6 +171,11 @@ class AuthService {
         return 'Firebase API key is invalid or restricted for this platform/domain.';
       case 'app-not-authorized':
         return 'This app/domain is not authorized for your Firebase project.';
+      case 'permission-denied':
+        if (message.contains('suspended') || message.contains('api-key')) {
+          return 'Your Firebase Web API key is suspended or blocked. Check Google Cloud API key restrictions and billing status.';
+        }
+        return 'Permission denied by Firebase/Google Cloud project settings.';
       case 'network-request-failed':
         return 'Network error. Check your connection and try again.';
       case 'user-not-found':
@@ -172,6 +192,9 @@ class AuthService {
       case 'too-many-requests':
         return 'Too many attempts. Please try again later.';
       default:
+        if (message.contains('consumer') && message.contains('suspended')) {
+          return 'Your Firebase Web API key consumer is suspended. Check Google Cloud console for API key restrictions, billing, and project status.';
+        }
         return e.message ?? 'Authentication failed. Please try again.';
     }
   }

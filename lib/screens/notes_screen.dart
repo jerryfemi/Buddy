@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:buddy/providers/notes_provider.dart';
 import 'package:buddy/screens/edit_note_screen.dart';
 import 'package:buddy/screens/recently_deleted_notes_screen.dart';
@@ -19,6 +21,13 @@ class NotesScreen extends ConsumerStatefulWidget {
 
 class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
   late String _searchQuery = '';
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   void addNewNote(BuildContext context) {
     Navigator.of(context).push(
@@ -70,8 +79,11 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
                   pinned: false,
                   delegate: SearchBarDelegate(
                     onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
+                      if (_debounce?.isActive ?? false) _debounce!.cancel();
+                      _debounce = Timer(const Duration(milliseconds: 300), () {
+                        setState(() {
+                          _searchQuery = value;
+                        });
                       });
                     },
                   ),

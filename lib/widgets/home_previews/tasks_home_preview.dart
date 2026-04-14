@@ -1,10 +1,11 @@
 import 'package:buddy/models/task_model.dart';
 import 'package:buddy/providers/tasks_provider.dart';
-import 'package:buddy/screens/navigation_screen.dart';
 import 'package:buddy/utils/responsive_utils.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class TasksHomePreview extends ConsumerWidget {
@@ -17,7 +18,7 @@ class TasksHomePreview extends ConsumerWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(15.r),
       enableFeedback: true,
-      onTap: () => NavigationScreen.switchToTab( 2),
+      onTap: () => context.go(AppRoutes.tasks),
       child: Container(
         padding: EdgeInsets.symmetric(
           vertical: context.adaptSize(9.h, ),

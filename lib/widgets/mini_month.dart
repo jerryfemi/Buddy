@@ -47,21 +47,23 @@ class MiniMonth extends StatelessWidget {
                   day == currentDay) {
                 isToday = true;
               }
-              return Container(
-                decoration: isToday
-                    ? BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
-                      )
-                    : null,
-
-                child: Center(
-                  child: FittedBox(fit: BoxFit.scaleDown,
-                    child: Text(
-                      day.toString(),
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+              return RepaintBoundary(
+                child: Container(
+                  decoration: isToday
+                      ? BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                        )
+                      : null,
+                
+                  child: Center(
+                    child: FittedBox(fit: BoxFit.scaleDown,
+                      child: Text(
+                        day.toString(),
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),

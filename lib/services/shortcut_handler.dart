@@ -1,16 +1,21 @@
 import 'dart:async';
 
 import 'package:buddy/utils/responsive_utils.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:receive_intent/receive_intent.dart' as receive_intent;
 
-import '../main.dart';
 import '../screens/edit_note_screen.dart';
-import '../screens/navigation_screen.dart';
+import '../utils/app_keys.dart';
 import '../widgets/add_events_sheet.dart';
 import '../widgets/task_dialog.dart';
 
 class ShortcutHandler {
+  static const double _collapsedTaskSnap = 0.58;
+  static const double _expandedTaskSnap = 0.8;
+  static const double _expandedEventSnap = 0.8;
+
   static StreamSubscription? intentSub;
   static bool hasHandledIntent = false;
 
@@ -26,7 +31,7 @@ class ShortcutHandler {
       (intent) {
         final shortcutValue = intent?.extra?['shortcut'];
         if (shortcutValue != null) {
-          navigateBasedOnShortcut(shortcutValue);
+          unawaited(navigateBasedOnShortcut(shortcutValue));
         }
       },
       onError: (e) {
@@ -43,47 +48,72 @@ class ShortcutHandler {
       if (shortcutValue != null) {
         hasHandledIntent = true;
         await Future.delayed(const Duration(milliseconds: 200));
-        navigateBasedOnShortcut(shortcutValue);
+        await navigateBasedOnShortcut(shortcutValue);
       }
     }
   }
 
   // navigate to the screen based on shortcut tapped
-  static void navigateBasedOnShortcut(String value) {
+  static Future<void> navigateBasedOnShortcut(String value) async {
     final ctx = navigatorKey.currentContext;
-
-    if (ctx == null) return;
+    if (ctx == null) {
+      return;
+    }
 
     switch (value) {
       case 'new_note':
-        NavigationScreen.openShortcut(1, () async {
-          await navigatorKey.currentState?.push(
-            MaterialPageRoute(
-              builder: (_) => EditNotesScreen(existingNote: null),
-            ),
-          );
-        });
+        await _goToBranch(AppRoutes.notes);
+        await navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => EditNotesScreen(existingNote: null),
+          ),
+        );
         break;
       case 'new_task':
-        NavigationScreen.openShortcut(2, () => openTaskDialog(ctx));
+        await _goToBranch(AppRoutes.tasks);
+        final taskContext = navigatorKey.currentContext;
+        if (taskContext != null) {
+          await openTaskDialog(taskContext);
+        }
         break;
       case 'new_event':
-        NavigationScreen.openShortcut(3, () => openAddEventsDialog(ctx));
+        await _goToBranch(AppRoutes.reminders);
+        final eventContext = navigatorKey.currentContext;
+        if (eventContext != null) {
+          await openAddEventsDialog(eventContext);
+        }
 
         break;
     }
   }
 
+  static Future<void> _goToBranch(String location) async {
+    final ctx = navigatorKey.currentContext;
+    if (ctx == null) {
+      return;
+    }
+
+    GoRouter.of(ctx).go(location);
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+
   static Future<void> openTaskDialog(BuildContext ctx) async {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: ctx,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      sheetAnimationStyle: const AnimationStyle(
+        duration: Duration(milliseconds: 190),
+        reverseDuration: Duration(milliseconds: 170),
+      ),
       builder: (context) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.58,
-          minChildSize: 0.3,
-          maxChildSize: 0.8,
+          initialChildSize: _collapsedTaskSnap,
+          minChildSize: _collapsedTaskSnap,
+          maxChildSize: _expandedTaskSnap,
+          snap: true,
+          snapSizes: const [_collapsedTaskSnap, _expandedTaskSnap],
           builder: (context, scrollController) =>
               TaskDialog(controller: scrollController),
         );
@@ -93,15 +123,24 @@ class ShortcutHandler {
 
   //
   static Future<void> openAddEventsDialog(BuildContext ctx) async {
-    showModalBottomSheet(
+    final collapsedEventSnap = ctx.adaptSize(0.6, tab: 0.5);
+
+    showModalBottomSheet<void>(
       isDismissible: false,
       context: ctx,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      sheetAnimationStyle: const AnimationStyle(
+        duration: Duration(milliseconds: 190),
+        reverseDuration: Duration(milliseconds: 170),
+      ),
       builder: (context) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: context.adaptSize(0.6, tab: 0.5),
-        minChildSize: 0.37,
-        maxChildSize: 0.8,
+        initialChildSize: collapsedEventSnap,
+        minChildSize: collapsedEventSnap,
+        maxChildSize: _expandedEventSnap,
+        snap: true,
+        snapSizes: [collapsedEventSnap, _expandedEventSnap],
         builder: (context, scrollController) {
           return AddEventSheet(scrollController: scrollController);
         },

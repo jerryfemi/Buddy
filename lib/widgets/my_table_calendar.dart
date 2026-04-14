@@ -38,17 +38,21 @@ class MyTableCalendar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the month-level map ONCE instead of per-day subscriptions.
+    // This reduces ~42 provider subscriptions to 1.
+    final monthStart = DateTime(focusedDay.year, focusedDay.month, 1);
+    final eventsMap = ref.watch(eventsOccurrencesProvider(monthStart));
+
     List<dynamic> eventLoader(DateTime day) {
-      return ref.watch(eventsForDateProvider(day));
+      final key = DateTime(day.year, day.month, day.day);
+      return eventsMap[key] ?? [];
     }
 
     return SizedBox(
       height: calendarHeight,
-      child: SingleChildScrollView(
-        physics: ClampingScrollPhysics(),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.w),
-          child: TableCalendar(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        child: TableCalendar(
             focusedDay: focusedDay,
             firstDay: DateTime.utc(2000, 1, 1),
             lastDay: DateTime.utc(2100, 12, 31),
@@ -247,7 +251,6 @@ class MyTableCalendar extends ConsumerWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 }

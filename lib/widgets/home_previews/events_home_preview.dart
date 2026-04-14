@@ -1,10 +1,11 @@
 import 'package:buddy/providers/calendar_event_provider.dart';
-import 'package:buddy/screens/navigation_screen.dart';
 import 'package:buddy/utils/responsive_utils.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:buddy/widgets/my_table_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 class EventsHomePreview extends ConsumerWidget {
   const EventsHomePreview({super.key});
@@ -12,12 +13,12 @@ class EventsHomePreview extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
-      onTap: () => NavigationScreen.switchToTab(3),
+      onTap: () => context.go(AppRoutes.reminders),
       borderRadius: BorderRadius.circular(15.r),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: context.adaptSize(10.w, ),
-          vertical: context.adaptSize(9.h,),
+          horizontal: context.adaptSize(10.w),
+          vertical: context.adaptSize(9.h),
         ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.secondary,
@@ -49,7 +50,7 @@ List<Widget> _previewEvents(WidgetRef ref, BuildContext context) {
         padding: EdgeInsets.symmetric(vertical: 5.h),
         child: MyTableCalendar(
           focusedDay: focusedDay,
-          calendarHeight: context.adaptSize(110.h,tab: 90.h),
+          calendarHeight: context.adaptSize(110.h, tab: 90.h),
           useWeekFormat: true,
           rowHeight: context.adaptSize(28.h, tab: 40.h),
           onPageChanged: null,

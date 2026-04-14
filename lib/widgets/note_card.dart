@@ -96,21 +96,26 @@ class NoteTile extends ConsumerWidget {
 }
 
 // helper to format date time.
+final _timeFormat = DateFormat('HH:mm');
+final _weekdayFormat = DateFormat('EEE');
+final _dateFormat = DateFormat('dd/MM/yy');
+final _monthFormat = DateFormat('MMMM');
+
 String formatDateTime(DateTime date) {
   final now = DateTime.now();
   final difference = now.difference(date).inDays;
 
   if (difference == 0) {
     // Today -> show time(HH:mm)
-    return DateFormat('HH:mm').format(date);
+    return _timeFormat.format(date);
   } else if (difference > 0 && difference < 7) {
     // within 7 days -> weekday
-    return DateFormat('EEE').format(date);
+    return _weekdayFormat.format(date);
   } else if (difference >= 7 && difference < 30) {
     // Within 30 days -> dd/MM/yy
-    return DateFormat('dd/MM/yyy').format(date);
+    return _dateFormat.format(date);
   } else {
     // Older than 30 days -> month name
-    return DateFormat('MMMM').format(date);
+    return _monthFormat.format(date);
   }
 }

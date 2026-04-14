@@ -74,8 +74,6 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
     // remove listener
     box.listenable().removeListener(listener);
     super.dispose();
-
-
   }
 
   // auto delete notes permanently
@@ -86,7 +84,7 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
   }
 
   // add deleted note here
-  void addDeletedNote(Note note)  {
+  void addDeletedNote(Note note) {
     final deleted = DeletedNote(
       id: note.id,
       content: note.content,
@@ -96,17 +94,17 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
       updatedAt: note.updatedAt,
     );
 
-     box.put(deleted.id, deleted);
+    box.put(deleted.id, deleted);
 
     state = box.values.toList();
     // sync deleted note to firestore
     if (_syncService != null) {
-       _syncService.syncToFirestore().catchError((error){});
+      _syncService.syncToFirestore().catchError((error) {});
     }
   }
 
   //restore deleted note
-  void restoreNote(String id)  {
+  void restoreNote(String id) {
     final deleted = box.get(id);
     if (deleted == null) return;
     final originalNote = Note(
@@ -117,25 +115,27 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
       updatedAt: deleted.updatedAt,
     );
     // add back to active notes
-     _ref.read(notesProvider.notifier).restoreNote(originalNote);
+    _ref.read(notesProvider.notifier).restoreNote(originalNote);
 
     // remove from deleted box
-     box.delete(id);
+    box.delete(id);
     state = box.values.toList();
     // add back to active notes collection
     if (_syncService != null && _noteSyncService != null) {
-       _syncService.restoreFromDeleted(deleted, _noteSyncService).catchError((error){});
+      _syncService
+          .restoreFromDeleted(deleted, _noteSyncService)
+          .catchError((error) {});
     }
   }
 
   // permanently delete note from recently deleted
-  void permanentlyDeleteNote(String id)  {
-     box.delete(id);
+  void permanentlyDeleteNote(String id) {
+    box.delete(id);
     state = box.values.toList();
 
     // permanently remove form fireStore
     if (_syncService != null) {
-       _syncService.deletePermanently(id).catchError((error){});
+      _syncService.deletePermanently(id).catchError((error) {});
     }
   }
 
@@ -155,9 +155,7 @@ class DeletedNotesNotifier extends StateNotifier<List<DeletedNote>> {
 
       //delete from firestore
       if (_syncService != null) {
-        for (final id in toRemove) {
-           _syncService.deletePermanently(id).catchError((error){});
-        }
+        _syncService.deleteManyPermanently(toRemove).catchError((error) {});
       }
     }
   }

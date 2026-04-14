@@ -1,6 +1,6 @@
 import 'dart:io' show Platform;
 
-import 'package:buddy/main.dart';
+import 'package:buddy/utils/app_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -20,17 +20,15 @@ class NotificationService {
   // Call this  in main.dart
   static Future<void> init() async {
     tz.initializeTimeZones();
-    final String timeZoneName = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timeZoneName));
+    final timeZoneName = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZoneName.toString()));
 
     const androidInit = AndroidInitializationSettings('ic_notifications');
     const iosInit = DarwinInitializationSettings();
 
     final settings = InitializationSettings(android: androidInit, iOS: iosInit);
 
-    await _notifications.initialize(
-      settings,
-    );
+    await _notifications.initialize(settings: settings);
 
     // Android: register channels with max importance
     final androidPlugin = _notifications
@@ -151,15 +149,15 @@ class NotificationService {
   }) async {
     final notifId = _uuidToInt("task-$uuid");
     final channelId = 'tasks_channel';
-    final channelName ='Tasks';
+    final channelName = 'Tasks';
     final channelDescription = 'Reminders for your Tasks';
 
     await _notifications.zonedSchedule(
-      notifId,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      _createNotificationDetails(
+      id: notifId,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
+      notificationDetails: _createNotificationDetails(
         channelId: channelId,
         channelName: channelName,
         channelDescription: channelDescription,
@@ -184,11 +182,11 @@ class NotificationService {
     final channelDescription = 'Pre-reminder for your Events';
 
     await _notifications.zonedSchedule(
-      notifId,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      _createNotificationDetails(
+      id: notifId,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
+      notificationDetails: _createNotificationDetails(
         channelId: channelId,
         channelName: channelName,
         channelDescription: channelDescription,
@@ -209,14 +207,13 @@ class NotificationService {
     final notifId = _uuidToInt("event-$uuid");
     final channelId = 'events_channel';
     final channelName = 'Events';
-    final channelDescription =
-        'Reminders for your Events';
+    final channelDescription = 'Reminders for your Events';
     await _notifications.zonedSchedule(
-      notifId,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      _createNotificationDetails(
+      id: notifId,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
+      notificationDetails: _createNotificationDetails(
         channelId: channelId,
         channelName: channelName,
         channelDescription: channelDescription,
@@ -235,14 +232,14 @@ class NotificationService {
     required String body,
     required DateTime scheduledTime,
   }) async {
-    final notifId = _uuidToInt("event-end-$uuid") ;
+    final notifId = _uuidToInt("event-end-$uuid");
 
     await _notifications.zonedSchedule(
-      notifId,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      NotificationDetails(
+      id: notifId,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'events_channel',
           'Events',
@@ -260,11 +257,11 @@ class NotificationService {
 
   // Cancel by UUID (with prefix)
   static Future<void> cancelTask(String uuid) async {
-    await _notifications.cancel(_uuidToInt("task-$uuid"));
+    await _notifications.cancel(id: _uuidToInt("task-$uuid"));
   }
 
   static Future<void> cancelEvent(String uuid) async {
-    await _notifications.cancel(_uuidToInt("event-$uuid"));
+    await _notifications.cancel(id: _uuidToInt("event-$uuid"));
   }
 
   // Cancel all
@@ -273,32 +270,11 @@ class NotificationService {
   } // Cancel all
 
   static Future<void> cancelPreEvent(String uuid) async {
-    await _notifications.cancel(_uuidToInt("pre-event-$uuid"));
+    await _notifications.cancel(id: _uuidToInt("pre-event-$uuid"));
   }
-
 
   static Future<void> cancelEventEnd(String uuid) async {
-    await _notifications.cancel(_uuidToInt("event-end-$uuid"));
-  }
-
-  // Simple test notification for debugging
-  static Future<void> showTestNotification() async {
-    await _notifications.show(
-      999999,
-      'Test Notification',
-      'If you see this, notifications are working!',
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          'critical_reminders',
-          'Critical Reminders',
-          importance: Importance.max,
-          priority: Priority.max,
-          enableVibration: true,
-          enableLights: true,
-        ),
-        iOS: DarwinNotificationDetails(),
-      ),
-    );
+    await _notifications.cancel(id: _uuidToInt("event-end-$uuid"));
   }
 }
 

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:buddy/firebase/sync_service/deleted_notes_sync_service.dart';
 import 'package:buddy/firebase/sync_service/notes_sync_service.dart';
 import 'package:buddy/models/note_model.dart';
 import 'package:buddy/providers/auth_provider.dart';
@@ -8,8 +9,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:uuid/uuid.dart';
-
-import '../firebase/sync_service/deleted_notes_sync_service.dart';
 
 // notes hive box provider
 final notesBoxProvider = Provider<Box<Note>>((ref) => Hive.box('notesBox'));
@@ -22,18 +21,6 @@ final notesSyncServiceProvider = Provider<NoteSyncService?>((ref) {
   if (user == null) return null;
 
   return NoteSyncService(userId: user.uid, noteBox: box);
-});
-
-// deleted notes sync service provider
-final deletedNotesSyncServiceProvider = Provider<DeletedNotesSyncService?>((
-  ref,
-) {
-  final user = ref.watch(authStateProvider).value;
-  final box = ref.watch(deletedNotesBoxProvider);
-
-  if (user == null) return null;
-
-  return DeletedNotesSyncService(userId: user.uid, deletedNoteBox: box);
 });
 
 final notesProvider = StateNotifierProvider<NotesNotifier, List<Note>>((ref) {

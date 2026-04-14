@@ -96,6 +96,7 @@ class PreviousEventsNotifier extends StateNotifier<List<PreviousEvents>> {
   // clear all
   void clearPreviousEvents() {
     final preEvents = _box.values.toList();
+    final ids = preEvents.map((prev) => prev.id).toList();
 
     // clear hive box
     _box.clear();
@@ -103,13 +104,7 @@ class PreviousEventsNotifier extends StateNotifier<List<PreviousEvents>> {
 
     // delete all from fireStore
     if (_syncService != null) {
-      Future.wait(
-        preEvents.map((prev) async {
-          await _syncService
-              .deleteFromFirestorePermanently(prev.id)
-              .catchError((e) {});
-        }),
-      );
+      _syncService.deleteManyFromFirestorePermanently(ids).catchError((e) {});
     }
   }
 }

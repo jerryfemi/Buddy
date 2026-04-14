@@ -1,47 +1,23 @@
 import 'package:buddy/providers/global_sync_provider.dart';
 import 'package:buddy/providers/tasks_provider.dart';
-import 'package:buddy/screens/events_screen.dart';
-import 'package:buddy/screens/notes_screen.dart';
-import 'package:buddy/screens/tasks_screen.dart';
 import 'package:buddy/utils/reschedule_notifs.dart';
 import 'package:buddy/widgets/custom_nav_bar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../providers/calendar_event_provider.dart';
 import '../providers/deleted_notes_provider.dart';
 import '../services/shortcut_handler.dart';
-import 'home_screen.dart';
-
-final GlobalKey<NavigationScreenState> navigationScreenKey =
-    GlobalKey<NavigationScreenState>();
 
 class NavigationScreen extends ConsumerStatefulWidget {
-  const NavigationScreen({super.key});
+  final StatefulNavigationShell navigationShell;
+
+  const NavigationScreen({super.key, required this.navigationShell});
 
   @override
   ConsumerState<NavigationScreen> createState() => NavigationScreenState();
-
-  //  helper for HomeScreen to switch tabs
-  static void switchToTab(int index) {
-    final state = navigationScreenKey.currentState;
-    if (state != null && state.mounted) {
-      state.switchTab(index);
-    }
-  }
-
-  static Future<void> openShortcut(
-    int index,
-    Future<void> Function() afterSwitch,
-  ) async {
-    final state = navigationScreenKey.currentState;
-    if (state != null && state.mounted) {
-      state.switchTab(index);
-      await Future.delayed(const Duration(milliseconds: 100));
-      await afterSwitch();
-    }
-  }
 }
 
 class NavigationScreenState extends ConsumerState<NavigationScreen> {
@@ -60,6 +36,7 @@ class NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   @override
   void dispose() {
+    ref.read(globalSyncManagerProvider)?.stopConnectivityListener();
     ShortcutHandler.dispose();
     super.dispose();
   }
@@ -67,9 +44,9 @@ class NavigationScreenState extends ConsumerState<NavigationScreen> {
   Future<void> _initializeSync() async {
     // Check internet first
 
-    final connectivityResult = await Connectivity().checkConnectivity();
+    final connectivityResults = await Connectivity().checkConnectivity();
 
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResults.contains(ConnectivityResult.none)) {
       return;
     }
     final syncManager = ref.read(globalSyncManagerProvider);
@@ -92,32 +69,24 @@ class NavigationScreenState extends ConsumerState<NavigationScreen> {
     }
   }
 
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    NotesScreen(),
-    TasksScreen(),
-    EventsScreen(),
-  ];
-
-  void switchTab(int index) {
-    _onTabTapped(index);
-  }
-
   void _onTabTapped(int index) {
-    setState(() => _currentIndex = index);
+    widget.navigationShell.goBranch(
+      index,
+      initialLocation: index == widget.navigationShell.currentIndex,
+    );
   }
+
+  int get _selectedIndex => widget.navigationShell.currentIndex;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: widget.navigationShell,
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
         child: CustomNavBar(
-          selectedIndex: _currentIndex,
+          selectedIndex: _selectedIndex,
           onTabChanged: _onTabTapped,
         ),
       ),

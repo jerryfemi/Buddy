@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:buddy/firebase/sync_service/calendar_event_sync_service.dart';
+import 'package:buddy/firebase/sync_service/previous_events_sync_srevice.dart';
 import 'package:buddy/providers/auth_provider.dart';
 import 'package:buddy/providers/previous_events_provider.dart';
 import 'package:buddy/services/events_notifications_repository.dart';
@@ -9,7 +10,6 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:uuid/uuid.dart';
 
-import '../firebase/sync_service/previous_events_sync_srevice.dart';
 import '../models/calendar_event_model.dart';
 
 // Access Hive box
@@ -27,18 +27,6 @@ final calendarEventsSyncServiceProvider = Provider<CalendarEventSyncService?>((
   if (user == null) return null;
 
   return CalendarEventSyncService(userId: user.uid, eventBox: box);
-});
-
-// calendarEvents syncService provider
-final previousEventsSyncServiceProvider = Provider<PreviousEventSyncService?>((
-  ref,
-) {
-  final user = ref.watch(authStateProvider).value;
-  final box = ref.watch(previousEventsBoxProvider);
-
-  if (user == null) return null;
-
-  return PreviousEventSyncService(userId: user.uid, previousEventBox: box);
 });
 
 // All events from box (raw + rollover applied)

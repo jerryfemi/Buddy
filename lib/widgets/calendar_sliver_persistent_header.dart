@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../providers/calendar_event_provider.dart';
-
 class CalendarSliver extends ConsumerStatefulWidget {
   final DateTime? selectedDay;
   final ValueChanged<DateTime?> onDaySelected;
@@ -33,11 +31,6 @@ class _CalendarSliverState extends ConsumerState<CalendarSliver> {
 
   @override
   Widget build(BuildContext context) {
-    // eventLoader
-    List<dynamic> eventLoader(DateTime day) {
-      return ref.watch(eventsForDateProvider(day));
-    }
-
     return SliverPersistentHeader(
       pinned: true,
       delegate: _CalendarHeaderDelegate(
@@ -64,7 +57,6 @@ class _CalendarSliverState extends ConsumerState<CalendarSliver> {
             newFocusedDay,
           ); // Notify parent (RemindersScreen)
         },
-        eventLoader: eventLoader,
       ),
     );
   }
@@ -80,10 +72,8 @@ class _CalendarHeaderDelegate extends SliverPersistentHeaderDelegate {
   onDaySelected; // Callback to _CalendarSliverState
   final ValueChanged<DateTime>
   onPageChanged; // Callback to _CalendarSliverState
-  final List<dynamic> Function(DateTime day) eventLoader;
 
   _CalendarHeaderDelegate({
-    required this.eventLoader,
     required this.minHeight,
     required this.maxHeight,
     required this.selectedDay,

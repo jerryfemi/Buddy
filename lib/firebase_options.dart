@@ -57,8 +57,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '899334954651',
     projectId: 'buddy-da655',
     storageBucket: 'buddy-da655.appspot.com',
-    androidClientId: '899334954651-9a8ll5pu2oocnlvg0462plb5skskk2bo.apps.googleusercontent.com',
-    iosClientId: '899334954651-61qeuvpen5luv2bvm8hoeac681r6gdn1.apps.googleusercontent.com',
+    androidClientId:
+        '899334954651-9a8ll5pu2oocnlvg0462plb5skskk2bo.apps.googleusercontent.com',
+    iosClientId:
+        '899334954651-61qeuvpen5luv2bvm8hoeac681r6gdn1.apps.googleusercontent.com',
     iosBundleId: 'com.example.buddy',
   );
 
@@ -79,5 +81,4 @@ class DefaultFirebaseOptions {
     authDomain: 'buddy-da655.firebaseapp.com',
     storageBucket: 'buddy-da655.appspot.com',
   );
-
 }

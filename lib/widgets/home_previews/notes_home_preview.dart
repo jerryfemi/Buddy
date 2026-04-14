@@ -1,11 +1,12 @@
 import 'package:buddy/models/note_model.dart';
 import 'package:buddy/providers/notes_provider.dart';
-import 'package:buddy/screens/navigation_screen.dart';
 import 'package:buddy/utils/responsive_utils.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:buddy/widgets/note_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 class NotesHomePreview extends ConsumerWidget {
   const NotesHomePreview({super.key});
@@ -15,7 +16,7 @@ class NotesHomePreview extends ConsumerWidget {
     final notes = ref.watch(notesProvider);
     return InkWell(
       borderRadius: BorderRadius.circular(15.r),
-      onTap: () => NavigationScreen.switchToTab( 1),
+      onTap: () => context.go(AppRoutes.notes),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 9.h),
         decoration: BoxDecoration(

@@ -9,14 +9,13 @@ import '../models/task_model.dart';
 import 'auth_provider.dart';
 
 final globalSyncManagerProvider = Provider<GlobalSyncManager?>((ref) {
-  // Watch the auth state
-  final user = ref.watch(authNotifierProvider);
+  // Watch the auth stream state, consistent with the rest of providers.
+  final user = ref.watch(authStateProvider).value;
 
   // If no user, no sync manager
   if (user == null) return null;
 
-  // Return a new manager for the logged-in user
-  return GlobalSyncManager(
+  final manager = GlobalSyncManager(
     userId: user.uid,
     noteBox: Hive.box<Note>('notesBox'),
     deletedNoteBox: Hive.box<DeletedNote>('deletedNotesBox'),
@@ -24,4 +23,11 @@ final globalSyncManagerProvider = Provider<GlobalSyncManager?>((ref) {
     previousEventBox: Hive.box<PreviousEvents>('previousEventsBox'),
     taskBox: Hive.box<Task>('tasksBox'),
   );
+
+  ref.onDispose(() {
+    manager.dispose();
+  });
+
+  // Return a new manager for the logged-in user
+  return manager;
 });

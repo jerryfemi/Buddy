@@ -37,5 +37,5 @@ class SearchBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(SearchBarDelegate oldDelegate) => true;
+  bool shouldRebuild(SearchBarDelegate oldDelegate) => oldDelegate.onChanged != onChanged;
 }
