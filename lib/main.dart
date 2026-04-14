@@ -4,10 +4,11 @@ import 'package:buddy/models/previous_events_model.dart';
 import 'package:buddy/models/task_model.dart';
 import 'package:buddy/models/theme_model.dart';
 import 'package:buddy/providers/theme_preference_provider.dart';
-import 'package:buddy/screens/navigation_screen.dart';
 import 'package:buddy/services/notification_services.dart';
 import 'package:buddy/themes/dark_theme.dart';
 import 'package:buddy/themes/light_mode.dart';
+import 'package:buddy/utils/router.dart';
+import 'package:buddy/firebase_options.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -20,8 +21,6 @@ import 'package:hive_flutter/adapters.dart';
 
 import 'models/note_model.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -29,7 +28,7 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // FIREBASE INIT()
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // HIVE INIT()
   await Hive.initFlutter();
@@ -59,7 +58,7 @@ void main() async {
   runApp(
     ProviderScope(
       child: DevicePreview(
-        enabled: false,
+        enabled: kDebugMode,
         defaultDevice: Devices.ios.iPhone15Pro,
         builder: (context) => const MyApp(),
       ),
@@ -84,9 +83,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp(
-          navigatorKey: navigatorKey,
-          home: NavigationScreen(key: navigationScreenKey),
+        return MaterialApp.router(
+          routerConfig: ref.watch(goRouterProvider),
           debugShowCheckedModeBanner: false,
           title: 'Buddy',
           themeMode: theme,
