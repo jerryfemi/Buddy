@@ -100,14 +100,20 @@ class _SettingsScreenState extends ConsumerState<ProfileScreen> {
     final profileAsync = ref.watch(userProfileProvider);
     final user = FirebaseAuth.instance.currentUser;
 
+    ref.listen(userProfileProvider, (previous, next) {
+      if (next.hasValue && next.value != null) {
+        final profile = next.value!;
+        if (_nameController.text != (profile['displayName'] ?? '')) {
+          _nameController.text = profile['displayName'] ?? '';
+        }
+      }
+    });
+
     return Scaffold(
       body: profileAsync.when(
         data: (profile) {
           if (profile == null) return const _NoProfileView();
 
-          if (_nameController.text != (profile['displayName'] ?? '')) {
-            _nameController.text = profile['displayName'] ?? '';
-          }
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(
@@ -120,12 +126,13 @@ class _SettingsScreenState extends ConsumerState<ProfileScreen> {
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: Icon(
-                      Icons.exit_to_app,
+                      Icons.close,
                       color: Theme.of(
                         context,
                       ).colorScheme.primary.withValues(alpha: 0.6),
                     ),
                   ),
+
                 ],
               ),
               SliverFillRemaining(

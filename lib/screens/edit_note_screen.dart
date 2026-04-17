@@ -24,6 +24,7 @@ class _EditNotesScreenState extends ConsumerState<EditNotesScreen>
   final _focusNode = FocusNode();
   late String _initialContentJson;
   late String _initialPlainText;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -101,6 +102,7 @@ class _EditNotesScreenState extends ConsumerState<EditNotesScreen>
 
     _controller.dispose();
     _focusNode.dispose();
+    _scrollController.dispose();
 
     super.dispose();
   }
@@ -115,14 +117,14 @@ class _EditNotesScreenState extends ConsumerState<EditNotesScreen>
       },
       child: Scaffold(
         appBar: AppBar(),
-        body: _content(_controller, _focusNode),
+        body: _content(_controller, _focusNode,_scrollController),
       ),
     );
   }
 }
 
 // Scaffold content
-Widget _content(QuillController controller, FocusNode focusNode) {
+Widget _content(QuillController controller, FocusNode focusNode, ScrollController scrollController) {
   return Stack(
     children: [
       Positioned.fill(
@@ -134,7 +136,7 @@ Widget _content(QuillController controller, FocusNode focusNode) {
             expands: true,
           ),
           controller: controller,
-          scrollController: ScrollController(),
+          scrollController:scrollController ,
           focusNode: focusNode,
         ),
       ),

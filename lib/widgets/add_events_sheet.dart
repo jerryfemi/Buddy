@@ -54,6 +54,13 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventSheet> {
     setState(() => _reminders.remove(value));
   }
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   void _toggleAllDay(bool val) {
     setState(() {
       _isAllDay = val;

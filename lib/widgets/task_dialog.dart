@@ -63,6 +63,12 @@ class _TaskDialogState extends ConsumerState<TaskDialog> {
   }
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Material(
       child: ClipRRect(

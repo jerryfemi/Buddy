@@ -11,6 +11,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../widgets/search_bar_delegate.dart';
+import 'package:buddy/models/note_model.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
+class NotesSearchQueryNotifier extends StateNotifier<String> {
+  NotesSearchQueryNotifier() : super('');
+  
+  void updateQuery(String value) {
+    state = value;
+  }
+}
+
+final notesSearchQueryProvider = StateNotifierProvider.autoDispose<NotesSearchQueryNotifier, String>(
+  (ref) => NotesSearchQueryNotifier(),
+);
+
+final filteredNotesProvider = Provider.autoDispose<List<Note>>((ref) {
+  final notes = ref.watch(notesProvider);
+  final searchQuery = ref.watch(notesSearchQueryProvider).toLowerCase();
+
+  final filteredNotes = notes.where((note) {
+    return note.content.toLowerCase().contains(searchQuery) ||
+        note.title.toLowerCase().contains(searchQuery);
+  }).toList();
+  filteredNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  return filteredNotes;
+});
 
 class NotesScreen extends ConsumerStatefulWidget {
   const NotesScreen({super.key});
@@ -20,7 +46,7 @@ class NotesScreen extends ConsumerStatefulWidget {
 }
 
 class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
-  late String _searchQuery = '';
+
   Timer? _debounce;
 
   @override
@@ -39,15 +65,8 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final notes = ref.watch(notesProvider);
+    final filteredNotes = ref.watch(filteredNotesProvider);
 
-    // filter notes based on title or plain text content
-    final filteredNotes = notes.where((note) {
-      final searchLower = _searchQuery.toLowerCase();
-      return note.content.toLowerCase().contains(searchLower) ||
-          note.title.toLowerCase().contains(searchLower);
-    }).toList();
-    filteredNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -70,7 +89,8 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
         slivers: [
           // app bar
           _appBar(context),
-          notes.isEmpty
+          ref.watch(notesProvider).isEmpty
+
               ? // empty state
                 _emptyState(context)
               :
@@ -81,10 +101,9 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
                     onChanged: (value) {
                       if (_debounce?.isActive ?? false) _debounce!.cancel();
                       _debounce = Timer(const Duration(milliseconds: 300), () {
-                        setState(() {
-                          _searchQuery = value;
-                        });
+                        ref.read(notesSearchQueryProvider.notifier).updateQuery(value);
                       });
+
                     },
                   ),
                 ),

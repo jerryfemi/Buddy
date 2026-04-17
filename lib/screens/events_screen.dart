@@ -163,7 +163,7 @@ void openAddEventsDialog(BuildContext context) {
   const expandedSnap = 0.8;
 
   showModalBottomSheet<void>(
-    isDismissible: false,
+    isDismissible: true,
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,

@@ -83,13 +83,11 @@ class NavigationScreenState extends ConsumerState<NavigationScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: widget.navigationShell,
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-        child: CustomNavBar(
-          selectedIndex: _selectedIndex,
-          onTabChanged: _onTabTapped,
-        ),
+      bottomNavigationBar: CustomNavBar(
+        selectedIndex: _selectedIndex,
+        onTabChanged: _onTabTapped,
       ),
+
     );
   }
 }

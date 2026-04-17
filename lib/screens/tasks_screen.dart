@@ -22,8 +22,10 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
 
   late final AnimationController _controller;
   final ScrollController _scrollController = ScrollController();
+  ProviderSubscription? _subscription;
 
   @override
+
   void initState() {
     super.initState();
     final initialFraction = ref.read(tasksProvider.notifier).completionFraction;
@@ -32,12 +34,22 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
       duration: const Duration(milliseconds: 800),
       value: initialFraction,
     );
+
+    _subscription = ref.listenManual(tasksProvider, (_, _) {
+      final newFraction = ref.read(tasksProvider.notifier).completionFraction;
+      if (_controller.value != newFraction) {
+        _controller.animateTo(newFraction, curve: Curves.easeInOut);
+      }
+    });
   }
+
 
   @override
   void dispose() {
+    _subscription?.close();
     _controller.dispose();
     _scrollController.dispose();
+
     super.dispose();
   }
 
@@ -68,15 +80,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Listen to the provider to trigger animations as a side-effect.
-    ref.listen(tasksProvider, (_, _) {
-      final newFraction = ref.read(tasksProvider.notifier).completionFraction;
-      // Animate the controller's value from its current value to the new fraction.
-      _controller.animateTo(newFraction, curve: Curves.easeInOut);
-    });
-
     final tasks = ref.watch(tasksProvider);
     final sortedTasks = [
+
       ...tasks.where((t) => !t.isCompleted),
       ...tasks.where((t) => t.isCompleted),
     ];

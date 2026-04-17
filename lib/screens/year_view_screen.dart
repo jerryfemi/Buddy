@@ -45,6 +45,12 @@ class _YearViewScreenState extends State<YearViewScreen> {
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +64,9 @@ class _YearViewScreenState extends State<YearViewScreen> {
             onPressed: _goToPreviousYear,
             icon: Icon(
               Icons.arrow_back_ios_rounded,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.8),
             ),
           ),
           IconButton(

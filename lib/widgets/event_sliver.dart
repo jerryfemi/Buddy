@@ -221,7 +221,7 @@ class _EventsSliverState extends ConsumerState<EventsSliver> {
   // ---------------------------------------------------
   void openAddEventsDialog() {
     showModalBottomSheet(
-      isDismissible: false,
+      isDismissible: true,
       context: context,
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(

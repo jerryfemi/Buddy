@@ -4,9 +4,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'dart:async';
+
 import '../widgets/deleted_notes_tile.dart';
 import '../widgets/my_sliver_app_bar.dart';
 import '../widgets/search_bar_delegate.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
+class DeletedNotesSearchQueryNotifier extends StateNotifier<String> {
+  DeletedNotesSearchQueryNotifier() : super('');
+  
+  void updateQuery(String value) {
+    state = value;
+  }
+}
+
+final deletedNotesSearchQueryProvider = StateNotifierProvider.autoDispose<DeletedNotesSearchQueryNotifier, String>(
+  (ref) => DeletedNotesSearchQueryNotifier(),
+);
+
+final filteredDeletedNotesProvider = Provider.autoDispose((ref) {
+  final deletedNotes = ref.watch(deletedNotesProvider);
+  final searchQuery = ref.watch(deletedNotesSearchQueryProvider).toLowerCase();
+  
+  if (searchQuery.isEmpty) return deletedNotes;
+
+  return deletedNotes.where((deleted) {
+    return deleted.content.toLowerCase().contains(searchQuery) ||
+        deleted.title.toLowerCase().contains(searchQuery);
+  }).toList();
+});
 
 class RecentlyDeletedNotesScreen extends ConsumerStatefulWidget {
   const RecentlyDeletedNotesScreen({super.key});
@@ -18,17 +45,18 @@ class RecentlyDeletedNotesScreen extends ConsumerStatefulWidget {
 
 class _RecentlyDeletedNotesScreenState
     extends ConsumerState<RecentlyDeletedNotesScreen> {
-  String searchQuery = '';
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final deletedNote = ref.watch(deletedNotesProvider);
-    // filter notes based on title or plain text content
-    final filteredNotes = deletedNote.where((deleted) {
-      final searchLower = searchQuery.toLowerCase();
-      return deleted.content.toLowerCase().contains(searchLower) ||
-          deleted.title.toLowerCase().contains(searchLower);
-    }).toList();
+    final filteredNotes = ref.watch(filteredDeletedNotesProvider);
+
     return Scaffold(
       body: CustomScrollView(
         physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -40,16 +68,18 @@ class _RecentlyDeletedNotesScreenState
               IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: Icon(
-                  Icons.exit_to_app,
+                  Icons.close,
                   color: Theme.of(
                     context,
                   ).colorScheme.primary.withValues(alpha: 0.7),
                 ),
               ),
+
             ],
             title:'Recently Deleted'
           ),
-          deletedNote.isEmpty
+          ref.watch(deletedNotesProvider).isEmpty
+
               ? SliverToBoxAdapter(
                   child: Center(
                     child: Column(
@@ -72,11 +102,13 @@ class _RecentlyDeletedNotesScreenState
                   pinned: false,
                   delegate: SearchBarDelegate(
                     onChanged: (value) {
-                      setState(() {
-                        searchQuery = value;
+                      if (_debounce?.isActive ?? false) _debounce!.cancel();
+                      _debounce = Timer(const Duration(milliseconds: 300), () {
+                        ref.read(deletedNotesSearchQueryProvider.notifier).updateQuery(value);
                       });
                     },
                   ),
+
                 ),
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {

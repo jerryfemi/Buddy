@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
-class CustomNavBar extends StatefulWidget {
+class CustomNavBar extends StatelessWidget {
   final void Function(int)? onTabChanged;
   final int selectedIndex;
 
@@ -13,11 +13,6 @@ class CustomNavBar extends StatefulWidget {
     required this.selectedIndex,
   });
 
-  @override
-  State<CustomNavBar> createState() => _CustomNavBarState();
-}
-
-class _CustomNavBarState extends State<CustomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -45,8 +40,8 @@ class _CustomNavBarState extends State<CustomNavBar> {
             fontFamily: 'Times New Roman',
             fontSize: context.adaptSize(16.sp, tab: 25),
           ),
-          onTabChange: widget.onTabChanged,
-          selectedIndex: widget.selectedIndex,
+          onTabChange: onTabChanged,
+          selectedIndex: selectedIndex,
           tabBackgroundColor: Theme.of(context).colorScheme.secondary,
 
           gap: context.adaptSize(8.w, tab: 8),

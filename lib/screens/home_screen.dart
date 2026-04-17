@@ -84,14 +84,12 @@ Widget _drawer(BuildContext context) {
         onTap2: null,
         title1: 'Profile',
         title2: 'Theme',
-        leading1: IconButton(
-          onPressed: () {},
-          icon: Icon(
-            Icons.person,
-            color: Theme.of(context).colorScheme.primary,
-            size: context.adaptSize(30.sp, tab: 20.sp),
-          ),
+        leading1: Icon(
+          Icons.person,
+          color: Theme.of(context).colorScheme.primary,
+          size: context.adaptSize(30.sp, tab: 20.sp),
         ),
+
         leading2: ThemeToggleButton(),
         header: Image.asset(
           'lib/assets/images/buddy_logo.png',
