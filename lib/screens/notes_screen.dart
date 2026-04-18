@@ -9,24 +9,27 @@ import 'package:buddy/widgets/note_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../widgets/search_bar_delegate.dart';
 import 'package:buddy/models/note_model.dart';
-import 'package:flutter_riverpod/legacy.dart';
 
 class NotesSearchQueryNotifier extends StateNotifier<String> {
   NotesSearchQueryNotifier() : super('');
-  
+
   void updateQuery(String value) {
     state = value;
   }
 }
 
-final notesSearchQueryProvider = StateNotifierProvider.autoDispose<NotesSearchQueryNotifier, String>(
-  (ref) => NotesSearchQueryNotifier(),
-);
+final notesSearchQueryProvider =
+    StateNotifierProvider.autoDispose<NotesSearchQueryNotifier, String>(
+      (ref) => NotesSearchQueryNotifier(),
+    );
 
-final filteredNotesProvider = Provider.autoDispose<List<Note>>((ref) {
+typedef FilteredNotesResult = ({List<Note> items, bool hasAnyNotes});
+
+final filteredNotesProvider = Provider.autoDispose<FilteredNotesResult>((ref) {
   final notes = ref.watch(notesProvider);
   final searchQuery = ref.watch(notesSearchQueryProvider).toLowerCase();
 
@@ -35,7 +38,7 @@ final filteredNotesProvider = Provider.autoDispose<List<Note>>((ref) {
         note.title.toLowerCase().contains(searchQuery);
   }).toList();
   filteredNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-  return filteredNotes;
+  return (items: filteredNotes, hasAnyNotes: notes.isNotEmpty);
 });
 
 class NotesScreen extends ConsumerStatefulWidget {
@@ -46,7 +49,6 @@ class NotesScreen extends ConsumerStatefulWidget {
 }
 
 class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
-
   Timer? _debounce;
 
   @override
@@ -65,8 +67,8 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredNotes = ref.watch(filteredNotesProvider);
-
+    final filtered = ref.watch(filteredNotesProvider);
+    final filteredNotes = filtered.items;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -89,8 +91,7 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
         slivers: [
           // app bar
           _appBar(context),
-          ref.watch(notesProvider).isEmpty
-
+          !filtered.hasAnyNotes
               ? // empty state
                 _emptyState(context)
               :
@@ -101,9 +102,10 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
                     onChanged: (value) {
                       if (_debounce?.isActive ?? false) _debounce!.cancel();
                       _debounce = Timer(const Duration(milliseconds: 300), () {
-                        ref.read(notesSearchQueryProvider.notifier).updateQuery(value);
+                        ref
+                            .read(notesSearchQueryProvider.notifier)
+                            .updateQuery(value);
                       });
-
                     },
                   ),
                 ),

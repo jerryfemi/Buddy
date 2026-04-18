@@ -27,9 +27,31 @@ class _SettingsScreenState extends ConsumerState<ProfileScreen> {
   final _picker = ImagePicker();
   File? _imageFile;
   bool _isUploading = false;
+  ProviderSubscription<AsyncValue<Map<String, dynamic>?>>? _profileSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final current = ref.read(userProfileProvider);
+    if (current.hasValue && current.value != null) {
+      _nameController.text = current.value!['displayName'] ?? '';
+    }
+
+    _profileSub = ref.listenManual(userProfileProvider, (previous, next) {
+      if (next.hasValue && next.value != null) {
+        final profile = next.value!;
+        final nextName = profile['displayName'] ?? '';
+        if (_nameController.text != nextName) {
+          _nameController.text = nextName;
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _profileSub?.close();
     _nameController.dispose();
     super.dispose();
   }
@@ -100,20 +122,10 @@ class _SettingsScreenState extends ConsumerState<ProfileScreen> {
     final profileAsync = ref.watch(userProfileProvider);
     final user = FirebaseAuth.instance.currentUser;
 
-    ref.listen(userProfileProvider, (previous, next) {
-      if (next.hasValue && next.value != null) {
-        final profile = next.value!;
-        if (_nameController.text != (profile['displayName'] ?? '')) {
-          _nameController.text = profile['displayName'] ?? '';
-        }
-      }
-    });
-
     return Scaffold(
       body: profileAsync.when(
         data: (profile) {
           if (profile == null) return const _NoProfileView();
-
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(
@@ -132,7 +144,6 @@ class _SettingsScreenState extends ConsumerState<ProfileScreen> {
                       ).colorScheme.primary.withValues(alpha: 0.6),
                     ),
                   ),
-
                 ],
               ),
               SliverFillRemaining(

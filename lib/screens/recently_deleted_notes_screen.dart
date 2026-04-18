@@ -1,39 +1,51 @@
 import 'package:buddy/providers/deleted_notes_provider.dart';
 import 'package:buddy/utils/responsive_utils.dart';
+import 'package:buddy/models/deleted_notes_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import 'dart:async';
 
 import '../widgets/deleted_notes_tile.dart';
 import '../widgets/my_sliver_app_bar.dart';
 import '../widgets/search_bar_delegate.dart';
-import 'package:flutter_riverpod/legacy.dart';
 
 class DeletedNotesSearchQueryNotifier extends StateNotifier<String> {
   DeletedNotesSearchQueryNotifier() : super('');
-  
+
   void updateQuery(String value) {
     state = value;
   }
 }
 
-final deletedNotesSearchQueryProvider = StateNotifierProvider.autoDispose<DeletedNotesSearchQueryNotifier, String>(
-  (ref) => DeletedNotesSearchQueryNotifier(),
-);
+final deletedNotesSearchQueryProvider =
+    StateNotifierProvider.autoDispose<DeletedNotesSearchQueryNotifier, String>(
+      (ref) => DeletedNotesSearchQueryNotifier(),
+    );
 
-final filteredDeletedNotesProvider = Provider.autoDispose((ref) {
-  final deletedNotes = ref.watch(deletedNotesProvider);
-  final searchQuery = ref.watch(deletedNotesSearchQueryProvider).toLowerCase();
-  
-  if (searchQuery.isEmpty) return deletedNotes;
-
-  return deletedNotes.where((deleted) {
-    return deleted.content.toLowerCase().contains(searchQuery) ||
-        deleted.title.toLowerCase().contains(searchQuery);
-  }).toList();
+typedef FilteredDeletedNotesResult = ({
+  List<DeletedNote> items,
+  bool hasAnyNotes,
 });
+
+final filteredDeletedNotesProvider =
+    Provider.autoDispose<FilteredDeletedNotesResult>((ref) {
+      final deletedNotes = ref.watch(deletedNotesProvider);
+      final searchQuery = ref
+          .watch(deletedNotesSearchQueryProvider)
+          .toLowerCase();
+
+      final items = searchQuery.isEmpty
+          ? deletedNotes
+          : deletedNotes.where((deleted) {
+              return deleted.content.toLowerCase().contains(searchQuery) ||
+                  deleted.title.toLowerCase().contains(searchQuery);
+            }).toList();
+
+      return (items: items, hasAnyNotes: deletedNotes.isNotEmpty);
+    });
 
 class RecentlyDeletedNotesScreen extends ConsumerStatefulWidget {
   const RecentlyDeletedNotesScreen({super.key});
@@ -55,7 +67,8 @@ class _RecentlyDeletedNotesScreenState
 
   @override
   Widget build(BuildContext context) {
-    final filteredNotes = ref.watch(filteredDeletedNotesProvider);
+    final filtered = ref.watch(filteredDeletedNotesProvider);
+    final filteredNotes = filtered.items;
 
     return Scaffold(
       body: CustomScrollView(
@@ -74,12 +87,10 @@ class _RecentlyDeletedNotesScreenState
                   ).colorScheme.primary.withValues(alpha: 0.7),
                 ),
               ),
-
             ],
-            title:'Recently Deleted'
+            title: 'Recently Deleted',
           ),
-          ref.watch(deletedNotesProvider).isEmpty
-
+          !filtered.hasAnyNotes
               ? SliverToBoxAdapter(
                   child: Center(
                     child: Column(
@@ -104,19 +115,20 @@ class _RecentlyDeletedNotesScreenState
                     onChanged: (value) {
                       if (_debounce?.isActive ?? false) _debounce!.cancel();
                       _debounce = Timer(const Duration(milliseconds: 300), () {
-                        ref.read(deletedNotesSearchQueryProvider.notifier).updateQuery(value);
+                        ref
+                            .read(deletedNotesSearchQueryProvider.notifier)
+                            .updateQuery(value);
                       });
                     },
                   ),
-
                 ),
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final deleted = filteredNotes[index];
               return Padding(
                 padding: EdgeInsets.only(
-                  left:  context.adaptSize(15.w,tab: 12.w),
-                  right:  context.adaptSize(15.w,tab: 12.w),
+                  left: context.adaptSize(15.w, tab: 12.w),
+                  right: context.adaptSize(15.w, tab: 12.w),
                   bottom: context.adaptPadding(8.h, tab: 5.h),
                 ),
                 child: DeletedNotesTile(note: deleted),
