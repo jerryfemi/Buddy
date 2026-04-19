@@ -1,15 +1,14 @@
 import 'dart:async';
 
 import 'package:buddy/providers/notes_provider.dart';
-import 'package:buddy/screens/edit_note_screen.dart';
-import 'package:buddy/screens/recently_deleted_notes_screen.dart';
-import 'package:buddy/transition_class/dart/app_navigator.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:buddy/widgets/my_sliver_app_bar.dart';
 import 'package:buddy/widgets/note_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/search_bar_delegate.dart';
 import 'package:buddy/models/note_model.dart';
@@ -57,14 +56,6 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
     super.dispose();
   }
 
-  void addNewNote(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EditNotesScreen(existingNote: null),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final filtered = ref.watch(filteredNotesProvider);
@@ -75,13 +66,7 @@ class _OnBoardingScreenState extends ConsumerState<NotesScreen> {
       floatingActionButton: FloatingActionButton(
         heroTag: 'notes',
         shape: CircleBorder(),
-        onPressed: () {
-          AppNavigator.push(
-            context,
-            EditNotesScreen(existingNote: null),
-            type: TransitionType.fadeScale,
-          );
-        },
+        onPressed: () => context.push(AppRoutes.editNote),
         child: Icon(Icons.add, color: Colors.white),
       ),
 
@@ -132,11 +117,7 @@ Widget _appBar(BuildContext context) {
       PopupMenuButton<String>(
         onSelected: (value) {
           if (value == 'deleted') {
-            AppNavigator.push(
-              context,
-              RecentlyDeletedNotesScreen(),
-              type: TransitionType.cupertino,
-            );
+            context.push(AppRoutes.recentlyDeletedNotes);
           }
         },
         itemBuilder: (context) => [

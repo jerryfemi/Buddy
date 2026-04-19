@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:receive_intent/receive_intent.dart' as receive_intent;
 
-import '../screens/edit_note_screen.dart';
 import '../utils/app_keys.dart';
 import '../widgets/add_events_sheet.dart';
 import '../widgets/task_dialog.dart';
@@ -55,19 +54,13 @@ class ShortcutHandler {
 
   // navigate to the screen based on shortcut tapped
   static Future<void> navigateBasedOnShortcut(String value) async {
-    final ctx = navigatorKey.currentContext;
-    if (ctx == null) {
-      return;
-    }
-
     switch (value) {
       case 'new_note':
         await _goToBranch(AppRoutes.notes);
-        await navigatorKey.currentState?.push(
-          MaterialPageRoute(
-            builder: (_) => EditNotesScreen(existingNote: null),
-          ),
-        );
+        final noteContext = navigatorKey.currentContext;
+        if (noteContext != null) {
+          await GoRouter.of(noteContext).push(AppRoutes.editNote);
+        }
         break;
       case 'new_task':
         await _goToBranch(AppRoutes.tasks);

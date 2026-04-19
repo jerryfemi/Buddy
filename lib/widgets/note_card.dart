@@ -1,14 +1,14 @@
 import 'package:buddy/providers/notes_provider.dart';
-import 'package:buddy/transition_class/dart/app_navigator.dart';
+import 'package:buddy/utils/router.dart';
 import 'package:buddy/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../models/note_model.dart';
-import '../screens/edit_note_screen.dart';
 
 class NoteTile extends ConsumerWidget {
   final Note note;
@@ -39,13 +39,7 @@ class NoteTile extends ConsumerWidget {
       key: ValueKey(note.id),
       child: InkWell(
         borderRadius: BorderRadius.circular(12.r),
-        onTap: () {
-          AppNavigator.push(
-            context,
-            EditNotesScreen(existingNote: note),
-            type: TransitionType.cupertino,
-          );
-        },
+        onTap: () => context.push(AppRoutes.editNote, extra: note),
         child: Container(
           padding: EdgeInsets.all(context.adaptPadding(10.r, tab: 8.r)),
           decoration: BoxDecoration(

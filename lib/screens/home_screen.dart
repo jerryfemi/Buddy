@@ -1,5 +1,4 @@
 import 'package:buddy/providers/auth_provider.dart';
-import 'package:buddy/screens/user_profile_screen.dart';
 import 'package:buddy/utils/responsive_utils.dart';
 import 'package:buddy/utils/router.dart';
 import 'package:buddy/widgets/custom_drawer.dart';
@@ -76,10 +75,7 @@ Widget _drawer(BuildContext context) {
         ),
         onTap1: () {
           Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ProfileScreen()),
-          );
+          context.push(AppRoutes.profile);
         },
         onTap2: null,
         title1: 'Profile',
