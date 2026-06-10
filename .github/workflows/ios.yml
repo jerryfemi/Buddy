@@ -4,9 +4,12 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest # This gives you a free Mac in the cloud!
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
       
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
