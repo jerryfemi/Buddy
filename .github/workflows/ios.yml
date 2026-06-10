@@ -28,22 +28,28 @@ jobs:
           sed -i '' 's/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = "";/g' Runner.xcodeproj/project.pbxproj
           sed -i '' 's/CODE_SIGN_IDENTITY = ".*"/CODE_SIGN_IDENTITY = ""/g' Runner.xcodeproj/project.pbxproj
           sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = ".*"/PROVISIONING_PROFILE_SPECIFIER = ""/g' Runner.xcodeproj/project.pbxproj
+          echo "CODE_SIGNING_ALLOWED = NO" >> Flutter/Release.xcconfig
+          echo "CODE_SIGNING_REQUIRED = NO" >> Flutter/Release.xcconfig
 
       - name: Build IPA (No Signature)
         run: |
           flutter build ios --release --no-codesign 2>&1 || true
           
-          # Since Flutter crashes on its own signing check, it fails to copy the app to the final folder.
-          # But the Xcode build succeeded, so Runner.app exists in the intermediate build folders.
-          echo "Searching for generated Runner.app..."
-          APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
+          # We explicitly check the exact directory Xcode outputs to
+          APP_PATH="build/ios/Release-iphoneos/Runner.app"
           
-          if [ -z "$APP_PATH" ]; then
-            echo "ERROR: Runner.app was not generated anywhere. Build failed."
+          if [ ! -d "$APP_PATH" ]; then
+            echo "ERROR: Runner.app was not generated at $APP_PATH. Build failed."
             exit 1
           fi
           
-          echo "Found Runner.app at: $APP_PATH"
+          # Verify the app actually contains the compiled binary (so we don't zip an empty folder!)
+          if [ ! -f "$APP_PATH/Runner" ]; then
+            echo "ERROR: Runner.app is an empty shell. Xcode failed to populate it!"
+            exit 1
+          fi
+          
+          echo "Found fully compiled Runner.app at: $APP_PATH"
           
           # Package the IPA
           mkdir -p Payload
