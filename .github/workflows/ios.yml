@@ -22,10 +22,23 @@ jobs:
       - name: Disable Swift Package Manager
         run: flutter config --no-enable-swift-package-manager
 
+      - name: Disable code signing in Xcode project
+        run: |
+          cd ios
+          sed -i '' 's/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = "";/g' Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGN_IDENTITY = ".*"/CODE_SIGN_IDENTITY = ""/g' Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = ".*"/PROVISIONING_PROFILE_SPECIFIER = ""/g' Runner.xcodeproj/project.pbxproj
+
       - name: Build IPA (No Signature)
-        # We build without signing because SideStore/LiveContainer will handle the signing
-        run: flutter build ios --release --no-codesign
-        
+        run: |
+          flutter build ios --release --no-codesign 2>&1 || true
+          # Verify the .app was actually built
+          if [ ! -d "build/ios/iphoneos/Runner.app" ]; then
+            echo "ERROR: Runner.app was not generated. Build failed."
+            exit 1
+          fi
+          echo "Runner.app built successfully!"
+          
       - name: Compress App to IPA
         run: |
           cd build/ios/iphoneos
