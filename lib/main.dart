@@ -28,14 +28,22 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // FIREBASE INIT()
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    debugPrint('Firebase init failed: $e');
+  }
 
   // HIVE INIT()
   await Hive.initFlutter();
 
   // NOTIFICATIONS SERVICE INIT()
   if (!kIsWeb) {
-    await NotificationService.init();
+    try {
+      await NotificationService.init();
+    } catch (e) {
+      debugPrint('Notification init failed: $e');
+    }
   }
 
   // register adapters
