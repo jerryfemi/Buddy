@@ -2,7 +2,6 @@ import 'package:buddy/firebase/auth/auth_service.dart';
 import 'package:buddy/services/notification_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:hive/hive.dart';
 
 import '../models/calendar_event_model.dart';

@@ -5,7 +5,7 @@ import 'package:buddy/models/calendar_event_model.dart';
 import 'package:buddy/models/previous_events_model.dart';
 import 'package:buddy/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+
 import 'package:hive_flutter/adapters.dart';
 
 final previousEventsBoxProvider = Provider<Box<PreviousEvents>>(

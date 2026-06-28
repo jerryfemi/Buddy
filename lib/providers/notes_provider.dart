@@ -6,7 +6,6 @@ import 'package:buddy/models/note_model.dart';
 import 'package:buddy/providers/auth_provider.dart';
 import 'package:buddy/providers/deleted_notes_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:uuid/uuid.dart';
 

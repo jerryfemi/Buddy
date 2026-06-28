@@ -6,7 +6,7 @@ import 'package:buddy/providers/previous_events_provider.dart';
 import 'package:buddy/services/task_notifications_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+
 import 'package:hive_flutter/adapters.dart';
 import 'package:uuid/uuid.dart';
 
