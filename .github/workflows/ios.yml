@@ -8,8 +8,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Select latest Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+      - name: Select Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
       
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -19,22 +21,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
         
-      - name: Disable Swift Package Manager
-        run: flutter config --no-enable-swift-package-manager
-        
-      - name: Build IPA (No Signature)
-        # We build without signing because SideStore/LiveContainer will handle the signing
-        run: flutter build ios --release --no-codesign
-        
-      - name: Compress App to IPA
+      - name: Install CocoaPods
         run: |
-          cd build/ios/iphoneos
-          mkdir Payload
-          mv Runner.app Payload/
-          zip -r app.ipa Payload
+          cd ios
+          pod install
+
+      - name: Build archive
+        run: flutter build ipa --release --no-codesign
+        
+      - name: Package Unsigned IPA
+        run: |
+          mkdir -p build/ios/ipa/Payload
+          cp -r build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r buddy.ipa Payload
           
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-app
-          path: build/ios/iphoneos/app.ipa
+          path: build/ios/ipa/buddy.ipa
