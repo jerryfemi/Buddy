@@ -48,9 +48,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final location = state.matchedLocation;
       final isAuthRoute = location == AppRoutes.auth;
 
-      if (!isLoggedIn && !isAuthRoute) {
-        return AppRoutes.auth;
-      }
+
 
       if (isLoggedIn && isAuthRoute) {
         return AppRoutes.home;
